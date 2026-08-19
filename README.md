@@ -236,3 +236,9 @@ Scripts/Build/ValidateBeforeBuild.sh
 ```
 
 وتنجح فحوصات Python وBash و`git diff --check`. أما Unreal Editor Compile وAutomation tests وCook/Package فلم تُنفذ لأن Unreal Engine 5.4 وAndroid SDK/NDK غير متاحة في بيئة التنفيذ. لذلك تبقى حالة المشروع **Ready for Combat Demo: NO** إلى أن يتم Compile وCook وفتح الخريطة وتشغيل Runtime smoke test على جهاز بناء فعلي. التفاصيل في [CorrectiveReport.md](Docs/Build/CorrectiveReport.md) و[PreFixAudit.md](Docs/Build/PreFixAudit.md).
+
+## Combat Prototype v0.0.1
+
+تم تجهيز أول Combat Prototype فوق النسخة المصححة. أضيف `AALCombatPrototypeGameMode` لعدّ الأعداء وإعلان `Prototype Complete` عبر `OnEnemyKilled`، وأضيف `AALCombatPrototypeHUD` لربط Health وAmmo وEnemy Count وBuild Label عبر Delegates دون Tick polling. كما تم توسيع `Scripts/Editor/CreatePrototypeAssets.py` لإنشاء الخريطة والأصول الفعلية من داخل Unreal Editor Python فقط، بما يشمل `L_CombatPrototype.umap` وInput Actions وWeapon Data Assets وAI Data Assets وBlueprint subclasses وMobile/Combat HUD assets وArena blockout خفيف.
+
+تم إنشاء `BuildAndroidPrototype.ps1` و`BuildAndroidPrototype.sh` لإجراء Validate ثم UE/SDK/NDK gates ثم Build/Cook/Stage/Package وإخراج APK وSHA-256 وتقارير Release عند نجاح Unreal فعليًا. في البيئة الحالية لا توجد Unreal Engine أو Android SDK/NDK، لذلك الحالة الصادقة هي **CODE READY / BUILD BLOCKED**، ولا توجد `.umap` أو `.uasset` أو APK وهمية. راجع [CombatPrototype_v0.0.1.md](Docs/Build/CombatPrototype_v0.0.1.md) للتفاصيل والأوامر الدقيقة.
