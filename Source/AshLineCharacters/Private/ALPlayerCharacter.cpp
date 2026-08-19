@@ -6,11 +6,14 @@
 #include "ALPlayerStateComponent.h"
 #include "ALPrologueGameMode.h"
 #include "Components/ALWeaponComponent.h"
+#include "ALWeaponBase.h"
+#include "Data/ALWeaponData.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "GameFramework/Controller.h"
+#include "Engine/World.h"
 #include "TimerManager.h"
 
 namespace ALPlayerDefaults
@@ -36,7 +39,6 @@ AALPlayerCharacter::AALPlayerCharacter()
     FirstPersonCamera->bUsePawnControlRotation = true;
 
     HealthComponent = CreateDefaultSubobject<UALHealthComponent>(TEXT("HealthComponent"));
-    CombatComponent = CreateDefaultSubobject<UALCombatComponent>(TEXT("CombatComponent"));
     InventoryComponent = CreateDefaultSubobject<UALInventoryComponent>(TEXT("InventoryComponent"));
     EquipmentComponent = CreateDefaultSubobject<UALEquipmentComponent>(TEXT("EquipmentComponent"));
     InteractionComponent = CreateDefaultSubobject<UALInteractionComponent>(TEXT("InteractionComponent"));
@@ -65,6 +67,7 @@ void AALPlayerCharacter::BeginPlay()
         GetCharacterMovement()->MaxWalkSpeedCrouched = ALPlayerDefaults::CrouchSpeed;
         CurrentPitch = FMath::Clamp(GetControlRotation().Pitch, ALPlayerDefaults::MinPitch, ALPlayerDefaults::MaxPitch);
     }
+    SpawnDefaultLoadout();
     if (HealthComponent) HealthComponent->OnDeath.AddUniqueDynamic(this, &AALPlayerCharacter::HandleHealthDeath);
     if (AALPrologueGameMode* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AALPrologueGameMode>() : nullptr)
     {
@@ -175,6 +178,33 @@ void AALPlayerCharacter::StopAim()
 }
 void AALPlayerCharacter::ReloadWeapon() { if (WeaponComponent) WeaponComponent->StartReload(); }
 void AALPlayerCharacter::SwitchWeapon() { if (WeaponComponent) WeaponComponent->SwitchToNextWeapon(); }
+
+AALWeaponBase* AALPlayerCharacter::SpawnLoadoutWeapon(TSubclassOf<AALWeaponBase> WeaponClass, UALWeaponDataAsset* WeaponData, bool bPrimarySlot)
+{
+    if (!GetWorld() || !WeaponComponent || !WeaponClass || !WeaponData) return nullptr;
+    AALWeaponBase* Weapon = GetWorld()->SpawnActorDeferred<AALWeaponBase>(WeaponClass, GetActorTransform(), this, this, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    if (!Weapon) return nullptr;
+    Weapon->Data = WeaponData;
+    Weapon->FinishSpawning(GetActorTransform());
+    Weapon->InitializeWeapon(this);
+    WeaponComponent->EquipWeapon(Weapon, bPrimarySlot);
+    return Weapon;
+}
+
+void AALPlayerCharacter::SpawnDefaultLoadout()
+{
+    if (!WeaponComponent || WeaponComponent->GetCurrentWeapon()) return;
+    PrimaryWeaponInstance = SpawnLoadoutWeapon(PrimaryWeaponClass, PrimaryWeaponData, true);
+    SidearmWeaponInstance = SpawnLoadoutWeapon(SidearmWeaponClass, SidearmWeaponData, false);
+    if (PrimaryWeaponInstance) WeaponComponent->EquipWeapon(PrimaryWeaponInstance, true);
+}
+
+void AALPlayerCharacter::EquipDevelopmentSMG()
+{
+    if (!WeaponComponent || !DevelopmentSMGClass || !DevelopmentSMGData) return;
+    AALWeaponBase* SMG = SpawnLoadoutWeapon(DevelopmentSMGClass, DevelopmentSMGData, true);
+    if (SMG) PrimaryWeaponInstance = SMG;
+}
 
 void AALPlayerCharacter::SetMovementLocked(bool bLocked)
 {

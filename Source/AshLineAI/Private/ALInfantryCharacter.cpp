@@ -10,6 +10,7 @@
 #include "ALAIController.h"
 #include "World/ALPatrolRoute.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/World.h"
 
 AALInfantryCharacter::AALInfantryCharacter()
 {
@@ -41,14 +42,17 @@ void AALInfantryCharacter::BeginPlay()
     if (Archetype && Archetype->SquadId != NAME_None && SquadId == NAME_None) SquadId = Archetype->SquadId;
     if (WeaponComponent && WeaponClass && Archetype && !Archetype->WeaponData.IsNull())
     {
-        FActorSpawnParameters Params;
-        Params.Owner = this;
-        Params.Instigator = this;
-        SpawnedWeapon = GetWorld()->SpawnActor<AALWeaponBase>(WeaponClass, GetActorTransform(), Params);
-        if (SpawnedWeapon)
+        UALWeaponDataAsset* WeaponData = Archetype->WeaponData.LoadSynchronous();
+        if (WeaponData)
         {
-            SpawnedWeapon->Data = Archetype->WeaponData.LoadSynchronous();
-            WeaponComponent->EquipWeapon(SpawnedWeapon, true);
+            SpawnedWeapon = GetWorld()->SpawnActorDeferred<AALWeaponBase>(WeaponClass, GetActorTransform(), this, this, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+            if (SpawnedWeapon)
+            {
+                SpawnedWeapon->Data = WeaponData;
+                SpawnedWeapon->FinishSpawning(GetActorTransform());
+                SpawnedWeapon->InitializeWeapon(this);
+                WeaponComponent->EquipWeapon(SpawnedWeapon, true);
+            }
         }
     }
 }
