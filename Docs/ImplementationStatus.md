@@ -33,3 +33,11 @@ Multiplayer، مدينة ثانية، دبابات، مروحيات قتالية
 نجح `validate_prompt04.py` مع فحوصات Prompt 03 وPrompt 02 وفحوصات المشروع العامة. لا تزال ملفات `.uasset` وBlueprints والاختبارات الفعلية على Android وCompile/Cook/Package بحاجة إلى Unreal Build Machine.
 
 التقرير التفصيلي موجود في `Docs/Prompt04ImplementationReport.md`.
+
+## Prompt 05 — Enemy AI and First Combat Prototype
+
+تم تنفيذ Enemy AI وPerception وAwareness وPatrol وSearch وCombat وCover Lite وSpawner وAI Significance وDeath Hooks. يستخدم العدو نفس `UALHealthComponent` و`UALWeaponComponent` و`AALWeaponBase`، ويستقبل Damage Awareness من `OnDamageReceived` ويصدر `OnEnemyKilled` للمهمات. تم إضافة Gunshot Noise من Weapon إلى Core Noise Subsystem.
+
+نجح `validate_prompt05.py` مع جميع فحوصات Prompt 04 وPrompt 03 وPrompt 02 وفحوصات المشروع العامة. لا يمكن إعلان Android Prototype Release أو Runtime PASS قبل Unreal Compile/Cook/Package وتشغيل `L_CombatTest` على جهاز Android فعلي.
+
+التقرير التفصيلي موجود في `Docs/Prompt05ImplementationReport.md`.

@@ -185,3 +185,11 @@ python3 Scripts/Validation/size_report.py .
 تم تفعيل `IA_Fire` و`IA_Aim` و`IA_Reload` وإضافة `IA_NextWeapon`، مع تحديث Touch Layer لأزرار Fire وAim وReload وWeapon Switch. لا يحتوي Widget على منطق الرماية؛ تمر الأفعال عبر Player Controller ثم Player Character ثم Weapon Component ثم Weapon Base. يمكن لـ AI لاحقًا استخدام `SetAimDirection` و`FireAtTarget` دون الاعتماد على Mouse أو Touch.
 
 لتفاصيل التنفيذ والاختبارات راجع [تقرير Prompt 04](Docs/Prompt04ImplementationReport.md) و[خطة محتوى الأسلحة](Content/AshLine/Weapons/README.md).
+
+## Prompt 05 — Enemy AI and First Combat Prototype
+
+تم تنفيذ Enemy AI فوق `AshLineAI` باستخدام `AALInfantryCharacter` و`AALAIController` وState/Sense/Combat/Cover/Significance Components. يدعم النظام Idle وPatrol وSuspicious وAlert وCombat وSearch وReturning وDead، مع Sight وHearing وAwareness وDamage Awareness وLast Known Location وPatrol Routes وCover Reservation وSpawner وAI LOD Foundation.
+
+يعيد العدو استخدام `UALHealthComponent` و`UALWeaponComponent` و`AALWeaponBase` من المراحل السابقة. يطلق AI عبر Reaction Timer وAim Error وBurst/Pause، وتصل الطلقات إلى `FALDamageData` وHealth System نفسه. يرسل إطلاق اللاعب Gunshot Noise إلى Core Noise Subsystem لتستجيب AI القريبة بالسمع، ويرسل موت العدو `OnEnemyKilled` للمهمات اللاحقة.
+
+تمت إضافة `DA_AI_Soldier_Basic` و`DA_AI_Soldier_Trained` كبيانات JSON، ودليل إعداد AI وPatrol وCover وSpawner، وخطة `L_CombatTest`. تفاصيل التنفيذ والاختبارات والقيود موجودة في [تقرير Prompt 05](Docs/Prompt05ImplementationReport.md).

@@ -2,6 +2,7 @@
 #include "Data/ALWeaponData.h"
 #include "Components/ALRecoilComponent.h"
 #include "ALDamageSystemSubsystem.h"
+#include "ALNoiseSystemSubsystem.h"
 #include "Damage/ALDamageData.h"
 #include "Engine/World.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -113,6 +114,11 @@ bool AALWeaponBase::TryFireSingle()
     if (MuzzlePoint) if (UNiagaraSystem* MuzzleFX = Data->MuzzleFX.LoadSynchronous()) UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFX, MuzzlePoint->GetComponentLocation(), MuzzlePoint->GetComponentRotation());
     BroadcastAmmoChanged();
     OnWeaponFired.Broadcast();
+    if (GetWorld())
+    {
+        const FVector NoiseLocation = MuzzlePoint ? MuzzlePoint->GetComponentLocation() : GetActorLocation();
+        if (UALNoiseSystemSubsystem* NoiseSystem = GetWorld()->GetSubsystem<UALNoiseSystemSubsystem>()) NoiseSystem->ReportNoise(OwningPawn ? static_cast<AActor*>(OwningPawn) : this, NoiseLocation, 1.0f, TEXT("Gunshot"));
+    }
     return true;
 }
 
