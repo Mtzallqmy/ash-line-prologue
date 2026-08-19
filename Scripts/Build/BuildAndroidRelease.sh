@@ -35,9 +35,17 @@ python3 "$PROJECT_ROOT/Scripts/Validation/validate_build_references.py" "$PROJEC
 python3 "$PROJECT_ROOT/Scripts/Validation/static_surface_check.py" "$PROJECT_ROOT"
 mkdir -p "$RELEASE_ROOT/APK" "$RELEASE_ROOT/Symbols" "$RELEASE_ROOT/Reports" "$RELEASE_ROOT/Checksums" "$ARCHIVE_ROOT"
 
+if [[ -z "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}" && -d "/usr/lib/android-sdk" ]]; then
+  export ANDROID_HOME="/usr/lib/android-sdk"
+  export ANDROID_SDK_ROOT="$ANDROID_HOME"
+fi
+if [[ -z "${ANDROID_NDK_HOME:-${NDK_HOME:-}}" && -d "$ANDROID_HOME/ndk" ]]; then
+  export ANDROID_NDK_HOME="$(find "$ANDROID_HOME/ndk" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+  export NDK_HOME="$ANDROID_NDK_HOME"
+fi
 export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 [[ -n "$ANDROID_HOME" && -d "$ANDROID_HOME" ]] || fail "ANDROID_HOME/ANDROID_SDK_ROOT is not configured."
-[[ -n "${ANDROID_NDK_HOME:-${NDK_HOME:-}}" ]] || fail "ANDROID_NDK_HOME/NDK_HOME is not configured."
+[[ -n "${ANDROID_NDK_HOME:-${NDK_HOME:-}}" && -d "${ANDROID_NDK_HOME:-${NDK_HOME:-}}" ]] || fail "ANDROID_NDK_HOME/NDK_HOME is not configured."
 command -v java >/dev/null 2>&1 || fail "JDK is not available."
 command -v adb >/dev/null 2>&1 || echo "Warning: adb is not available; install verification will be skipped."
 

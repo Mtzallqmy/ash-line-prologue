@@ -252,3 +252,11 @@ Scripts/Build/ValidateBeforeBuild.sh
 تم تفعيل `PythonScriptPlugin` و`EditorScriptingUtilities` كأدوات Editor فقط، وتوسيع `CreatePrototypeAssets.py` لإنشاء `BP_ALPlayerController` وWeapon Blueprints وربط Input Actions وGameMode وPlayer/Enemy loadouts وMobileTouchLayer. أضيفت W/A/S/D modifier metadata، وأصبح PlayerController ينشئ MobileTouchLayer من Blueprint class دون إضافة Gameplay logic خاص بالهاتف.
 
 نجحت Validators المصدرية، لكن Compile وAsset Creation وAPK Packaging ما زالت **BLOCKED** بسبب غياب Unreal Engine 5.4 وAndroid SDK/NDK وPowerShell وADB في البيئة الحالية. التفاصيل في [ReleasePrompt08Report.md](Docs/Build/ReleasePrompt08Report.md).
+
+## Prompt 09 — Android Toolchain Attempt
+
+تم تنفيذ مسار تثبيت الأدوات الممكنة داخل Linux Sandbox. أصبح Android SDK API 34 وBuild Tools 34.0.0 وNDK r25c وADB مثبتة ومتحققة في `/usr/lib/android-sdk`، كما تم التحقق من Java 21 وتشغيل `adb devices` دون وجود جهاز Android متصل.
+
+تمت إضافة auto-detection لمسار `/usr/lib/android-sdk` ونسخة NDK الأعلى إلى `BuildAndroidRelease.sh`. بقي المانع الوحيد هو عدم وجود Unreal Engine 5.4.x وUnrealBuildTool وUnrealHeaderTool وUnrealEditor-Cmd. لذلك فشلت بوابات Editor وDevelopment وShipping قبل بدء UAT، ولم يتم إنشاء APK أو أصول Unreal ثنائية.
+
+التقرير التنفيذي الكامل موجود في [ReleasePrompt09Report.md](Docs/Build/ReleasePrompt09Report.md)، والحالة الصادقة هي: **BLOCKED: UNREAL ENGINE INSTALLATION REQUIRED**.

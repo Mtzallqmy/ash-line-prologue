@@ -150,6 +150,7 @@ required_scripts = [
     "Releases/Android/0.0.1/Checksums/SHA256.txt",
     "Docs/Build/CombatPrototype_v0.0.1.md",
     "Docs/Build/ReleasePrompt08Report.md",
+    "Docs/Build/ReleasePrompt09Report.md",
 ]
 for required_script in required_scripts:
     if not (ROOT / required_script).exists():
