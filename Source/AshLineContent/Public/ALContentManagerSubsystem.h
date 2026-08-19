@@ -28,7 +28,9 @@ public:
     UFUNCTION(BlueprintPure, Category="ASH LINE|Content") bool IsPackageMounted(const FString& PackageId) const;
     UFUNCTION(BlueprintPure, Category="ASH LINE|Content") EALPackageState GetPackageState(const FString& PackageId) const;
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool RequestPackage(const FString& PackageId);
-    UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool ImportPackage(const FString& FileReference);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Content", meta=(DeprecatedFunction, DeprecationMessage="Use ImportDevelopmentPackageDirectory for a directory or ImportPackageFile for a future .alpack container.")) bool ImportPackage(const FString& FileReference);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool ImportDevelopmentPackageDirectory(const FString& DirectoryReference);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool ImportPackageFile(const FString& FileReference);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool InstallPackage(const FString& PackageId);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool MountPackage(const FString& PackageId);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Content") bool UnmountPackage(const FString& PackageId);

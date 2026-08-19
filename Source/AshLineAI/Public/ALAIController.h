@@ -63,6 +63,7 @@ protected:
     bool bPatrolWaiting = false;
     bool bSearchMoveRequested = false;
     bool bCombatMoveRequested = false;
+    bool bPerceptionBound = false;
     int32 PatrolPointIndex = 0;
     FVector ActiveMoveDestination = FVector::ZeroVector;
     float LastProcessedNoiseTime = 0.0f;

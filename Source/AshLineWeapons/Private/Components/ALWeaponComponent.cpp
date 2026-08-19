@@ -12,7 +12,7 @@ void UALWeaponComponent::BeginPlay()
     Super::BeginPlay();
     if (UALHealthComponent* Health = GetOwner() ? GetOwner()->FindComponentByClass<UALHealthComponent>() : nullptr)
     {
-        Health->OnDeath.AddDynamic(this, &UALWeaponComponent::HandleOwnerDeath);
+        Health->OnDeath.AddUniqueDynamic(this, &UALWeaponComponent::HandleOwnerDeath);
     }
 }
 
@@ -20,7 +20,11 @@ void UALWeaponComponent::EquipWeapon(AALWeaponBase* Weapon, bool bPrimarySlot)
 {
     if (!IsValid(Weapon)) return;
     if (bPrimarySlot) PrimaryWeapon = Weapon; else SidearmWeapon = Weapon;
-    if (CurrentWeapon && CurrentWeapon != Weapon) CurrentWeapon->UnequipWeapon();
+    if (CurrentWeapon && CurrentWeapon != Weapon)
+    {
+        UnbindWeaponEvents(CurrentWeapon);
+        CurrentWeapon->UnequipWeapon();
+    }
     CurrentWeapon = Weapon;
     CurrentWeapon->EquipWeapon(Cast<APawn>(GetOwner()));
     BindWeaponEvents(CurrentWeapon);
@@ -59,8 +63,8 @@ void UALWeaponComponent::AddReserveAmmo(int32 Amount) { if (CurrentWeapon) Curre
 void UALWeaponComponent::BindWeaponEvents(AALWeaponBase* Weapon)
 {
     if (!Weapon) return;
-    Weapon->OnAmmoChanged.AddDynamic(this, &UALWeaponComponent::HandleWeaponAmmoChanged);
-    Weapon->OnAimChanged.AddDynamic(this, &UALWeaponComponent::HandleWeaponAimChanged);
+    Weapon->OnAmmoChanged.AddUniqueDynamic(this, &UALWeaponComponent::HandleWeaponAmmoChanged);
+    Weapon->OnAimChanged.AddUniqueDynamic(this, &UALWeaponComponent::HandleWeaponAimChanged);
 }
 
 void UALWeaponComponent::UnbindWeaponEvents(AALWeaponBase* Weapon)

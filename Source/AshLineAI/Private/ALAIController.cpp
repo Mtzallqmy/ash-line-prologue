@@ -78,7 +78,11 @@ void AALAIController::ConfigurePerception()
     PerceptionComponent->ConfigureSense(*SightConfig);
     PerceptionComponent->ConfigureSense(*HearingConfig);
     PerceptionComponent->SetDominantSense(SightConfig->GetSenseImplementation());
-    PerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AALAIController::OnPerceptionUpdated);
+    if (!bPerceptionBound)
+    {
+        PerceptionComponent->OnTargetPerceptionUpdated.AddUniqueDynamic(this, &AALAIController::OnPerceptionUpdated);
+        bPerceptionBound = true;
+    }
 }
 
 void AALAIController::ConfigureFromArchetype()

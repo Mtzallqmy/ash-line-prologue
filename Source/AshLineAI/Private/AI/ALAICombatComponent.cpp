@@ -32,8 +32,10 @@ void UALAICombatComponent::ConfigureFromArchetype(const UALAIArchetypeData* Arch
 void UALAICombatComponent::StartCombat(AActor* Target)
 {
     if (!IsValid(Target) || !WeaponComponent) return;
+    const bool bSameEngagement = bCombatActive && CurrentTarget.Get() == Target;
     CurrentTarget = Target;
     bCombatActive = true;
+    if (bSameEngagement) return;
     bReactionReady = false;
     if (GetWorld())
     {

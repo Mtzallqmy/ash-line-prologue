@@ -32,6 +32,7 @@ void AALWeaponBase::BeginPlay()
         AmmoInMagazine = Data->MagazineSize;
         ReserveAmmo = Data->ReserveAmmo;
         if (WeaponMesh) if (USkeletalMesh* LoadedMesh = Data->WeaponMesh.LoadSynchronous()) WeaponMesh->SetSkeletalMesh(LoadedMesh);
+        ResolveRuntimeAssets();
         if (MuzzlePoint) MuzzlePoint->SetRelativeLocation(FVector::ZeroVector);
     }
     BroadcastAmmoChanged();
@@ -40,6 +41,7 @@ void AALWeaponBase::BeginPlay()
 void AALWeaponBase::InitializeWeapon(APawn* NewOwner)
 {
     SetOwningActor(NewOwner);
+    ResolveRuntimeAssets();
     if (Data && AmmoInMagazine <= 0) { AmmoInMagazine = Data->MagazineSize; ReserveAmmo = Data->ReserveAmmo; BroadcastAmmoChanged(); }
 }
 
@@ -110,8 +112,8 @@ bool AALWeaponBase::TryFireSingle()
     NextFireTime = GetWorld() ? GetWorld()->GetTimeSeconds() + Data->GetSecondsPerShot() : 0.0f;
     FireHitscan(AimOrigin.IsNearlyZero() ? OwningPawn->GetPawnViewLocation() : AimOrigin, AimDirection.IsNearlyZero() ? OwningPawn->GetViewRotation().Vector() : AimDirection);
     if (RecoilComponent) RecoilComponent->ApplyRecoil(Data->RecoilSettings, false);
-    if (USoundBase* FireSound = Data->FireSound.LoadSynchronous()) UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-    if (MuzzlePoint) if (UNiagaraSystem* MuzzleFX = Data->MuzzleFX.LoadSynchronous()) UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFX, MuzzlePoint->GetComponentLocation(), MuzzlePoint->GetComponentRotation());
+    if (CachedFireSound) UGameplayStatics::PlaySoundAtLocation(this, CachedFireSound, GetActorLocation());
+    if (MuzzlePoint && CachedMuzzleFX) UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, CachedMuzzleFX, MuzzlePoint->GetComponentLocation(), MuzzlePoint->GetComponentRotation());
     BroadcastAmmoChanged();
     OnWeaponFired.Broadcast();
     if (GetWorld())
@@ -227,6 +229,13 @@ bool AALWeaponBase::FireAtTarget(AActor* Target, const FVector& Origin, const FV
     SetAimDirection(Origin, Direction);
     StartFire();
     return true;
+}
+
+void AALWeaponBase::ResolveRuntimeAssets()
+{
+    if (!Data) return;
+    if (!CachedFireSound && !Data->FireSound.IsNull()) CachedFireSound = Data->FireSound.LoadSynchronous();
+    if (!CachedMuzzleFX && !Data->MuzzleFX.IsNull()) CachedMuzzleFX = Data->MuzzleFX.LoadSynchronous();
 }
 
 void AALWeaponBase::BroadcastAmmoChanged()
