@@ -193,27 +193,37 @@ def create_input_assets():
     if context:
         # These mappings are the PC baseline. Mobile controls use the same actions
         # through the runtime touch widget/Blueprint layer.
-        key_names = {
-            "IA_Move": ("W", "A", "S", "D"),
-            "IA_Look": ("MouseX", "MouseY"),
-            "IA_Jump": ("SpaceBar",),
-            "IA_Crouch": ("C",),
-            "IA_Sprint": ("LeftShift",),
-            "IA_Interact": ("E",),
-            "IA_Fire": ("LeftMouseButton",),
-            "IA_Aim": ("RightMouseButton",),
-            "IA_Reload": ("R",),
-            "IA_SwitchWeapon": ("Q",),
-            "IA_NextWeapon": ("Q",),
-            "IA_Pause": ("Escape",),
+        mapping_specs = {
+            "IA_Move": (("W", ("swizzle_y",)), ("S", ("swizzle_y", "negate")), ("D", ()), ("A", ("negate",))),
+            "IA_Look": (("MouseX", ()), ("MouseY", ("swizzle_y",))),
+            "IA_Jump": (("SpaceBar", ()),),
+            "IA_Crouch": (("C", ()),),
+            "IA_Sprint": (("LeftShift", ()),),
+            "IA_Interact": (("E", ()),),
+            "IA_Fire": (("LeftMouseButton", ()),),
+            "IA_Aim": (("RightMouseButton", ()),),
+            "IA_Reload": (("R", ()),),
+            "IA_SwitchWeapon": (("Q", ()),),
+            "IA_NextWeapon": (("Q", ()),),
+            "IA_Pause": (("Escape", ()),),
         }
-        for action_name, keys in key_names.items():
+        for action_name, mappings in mapping_specs.items():
             action = actions.get(action_name)
             if not action or not hasattr(context, "map_key"):
                 continue
-            for key_name in keys:
+            for key_name, modifier_names in mappings:
                 try:
-                    context.map_key(action, unreal.Key(key_name))
+                    mapping = context.map_key(action, unreal.Key(key_name))
+                    if mapping and hasattr(mapping, "get_editor_property"):
+                        modifiers = list(mapping.get_editor_property("modifiers") or [])
+                        for modifier_name in modifier_names:
+                            if modifier_name == "negate":
+                                modifiers.append(unreal.InputModifierNegate())
+                            elif modifier_name == "swizzle_y":
+                                swizzle = unreal.InputModifierSwizzleAxis()
+                                set_if_present(swizzle, "order", getattr(unreal.EInputAxisSwizzle, "YXZ", "YXZ"))
+                                modifiers.append(swizzle)
+                        mapping.set_editor_property("modifiers", modifiers)
                 except Exception as exc:
                     unreal.log_warning(f"Could not map {key_name} to {action_name}: {exc}")
         unreal.EditorAssetLibrary.save_loaded_asset(context)
@@ -258,6 +268,7 @@ def create_blueprints(weapon_assets, input_actions, mapping_context, archetypes)
             "AimAction": input_actions.get("IA_Aim"),
             "ReloadAction": input_actions.get("IA_Reload"),
             "NextWeaponAction": input_actions.get("IA_SwitchWeapon") or input_actions.get("IA_NextWeapon"),
+            "MobileTouchWidgetClass": mobile_hud.generated_class() if mobile_hud else None,
         }
         for property_name, value in controller_bindings.items():
             if value:

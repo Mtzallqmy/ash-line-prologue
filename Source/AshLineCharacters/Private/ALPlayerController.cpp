@@ -5,6 +5,7 @@
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LocalPlayer.h"
+#include "Blueprint/UserWidget.h"
 
 void AALPlayerController::BeginPlay()
 {
@@ -88,4 +89,14 @@ void AALPlayerController::SetMobileTouchEnabled(bool bEnabled)
 {
     bEnableTouchEvents = bEnabled;
     bEnableTouchOverEvents = bEnabled;
+    if (bEnabled && MobileTouchWidgetClass && !MobileTouchWidget)
+    {
+        MobileTouchWidget = CreateWidget<UUserWidget>(this, MobileTouchWidgetClass);
+        if (MobileTouchWidget) MobileTouchWidget->AddToViewport(20);
+    }
+    else if (!bEnabled && MobileTouchWidget)
+    {
+        MobileTouchWidget->RemoveFromParent();
+        MobileTouchWidget = nullptr;
+    }
 }

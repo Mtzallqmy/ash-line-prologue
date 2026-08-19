@@ -5,6 +5,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UUserWidget;
 struct FInputActionValue;
 
 UCLASS(Blueprintable)
@@ -30,6 +31,8 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Future Input") TObjectPtr<UInputAction> ReloadAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Future Input") TObjectPtr<UInputAction> DroneAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Weapon Input") TObjectPtr<UInputAction> NextWeaponAction;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Mobile") TSubclassOf<UUserWidget> MobileTouchWidgetClass;
+    UPROPERTY(BlueprintReadOnly, Category="ASH LINE|Mobile") TObjectPtr<UUserWidget> MobileTouchWidget;
 
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void ApplyPlayerMappingContext();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void SetMobileTouchEnabled(bool bEnabled);
