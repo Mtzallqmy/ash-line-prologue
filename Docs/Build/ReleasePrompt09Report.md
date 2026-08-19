@@ -37,6 +37,8 @@ The Android-side installation was real and verified. The NDK installer downloade
 
 ## Paths searched for Unreal
 
+The authenticated GitHub account was also checked for `EpicGames/UnrealEngine`; GitHub returned `Could not resolve to a Repository`, confirming that this session does not have access to Epic's private Unreal source repository. Epic's official documentation requires an Epic account, a GitHub account, and an account-linking/EULA authorization step before source access is granted.
+
 The following local paths were checked and did not contain Unreal Engine:
 
 ```text
