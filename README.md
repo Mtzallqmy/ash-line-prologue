@@ -242,3 +242,13 @@ Scripts/Build/ValidateBeforeBuild.sh
 تم تجهيز أول Combat Prototype فوق النسخة المصححة. أضيف `AALCombatPrototypeGameMode` لعدّ الأعداء وإعلان `Prototype Complete` عبر `OnEnemyKilled`، وأضيف `AALCombatPrototypeHUD` لربط Health وAmmo وEnemy Count وBuild Label عبر Delegates دون Tick polling. كما تم توسيع `Scripts/Editor/CreatePrototypeAssets.py` لإنشاء الخريطة والأصول الفعلية من داخل Unreal Editor Python فقط، بما يشمل `L_CombatPrototype.umap` وInput Actions وWeapon Data Assets وAI Data Assets وBlueprint subclasses وMobile/Combat HUD assets وArena blockout خفيف.
 
 تم إنشاء `BuildAndroidPrototype.ps1` و`BuildAndroidPrototype.sh` لإجراء Validate ثم UE/SDK/NDK gates ثم Build/Cook/Stage/Package وإخراج APK وSHA-256 وتقارير Release عند نجاح Unreal فعليًا. في البيئة الحالية لا توجد Unreal Engine أو Android SDK/NDK، لذلك الحالة الصادقة هي **CODE READY / BUILD BLOCKED**، ولا توجد `.umap` أو `.uasset` أو APK وهمية. راجع [CombatPrototype_v0.0.1.md](Docs/Build/CombatPrototype_v0.0.1.md) للتفاصيل والأوامر الدقيقة.
+
+## Prompt 08 — Release Branch and Compile/Loadout Hardening
+
+تم إنشاء فرع الإصدار `release/combat-prototype-v0.0.1` فوق النسخة المصححة. أزيل `UALCombatComponent` القديم من Player لأنه كان يملك API قديمة (`Fire` و`Reload`) موازية للنظام الصحيح؛ أصبح `UALWeaponComponent` هو مصدر الحقيقة الوحيد للرماية وإعادة التعبئة والتبديل.
+
+أصبح Player قادرًا على إنشاء Loadout فعلي عند `BeginPlay` بعد تعيين Blueprint defaults: AR في Primary وPistol في Sidearm، مع مسار Development لتجربة SMG. كما تم إصلاح ترتيب Enemy weapon spawn باستخدام Deferred Spawn حتى يتم تعيين `WeaponData` قبل اكتمال التهيئة.
+
+تم تفعيل `PythonScriptPlugin` و`EditorScriptingUtilities` كأدوات Editor فقط، وتوسيع `CreatePrototypeAssets.py` لإنشاء `BP_ALPlayerController` وWeapon Blueprints وربط Input Actions وGameMode وPlayer/Enemy loadouts وMobileTouchLayer. أضيفت W/A/S/D modifier metadata، وأصبح PlayerController ينشئ MobileTouchLayer من Blueprint class دون إضافة Gameplay logic خاص بالهاتف.
+
+نجحت Validators المصدرية، لكن Compile وAsset Creation وAPK Packaging ما زالت **BLOCKED** بسبب غياب Unreal Engine 5.4 وAndroid SDK/NDK وPowerShell وADB في البيئة الحالية. التفاصيل في [ReleasePrompt08Report.md](Docs/Build/ReleasePrompt08Report.md).
