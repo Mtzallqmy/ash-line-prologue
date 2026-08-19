@@ -1,0 +1,23 @@
+{
+  "id": "health_default_character",
+  "maxHealth": 100.0,
+  "initialInvulnerabilityDuration": 0.0,
+  "fallDamage": {
+    "minimumFallSpeed": 900.0,
+    "fatalFallSpeed": 2200.0,
+    "maxFallDamage": 100.0,
+    "curve": "optional"
+  },
+  "supportedDamageTypes": [
+    "Generic",
+    "Bullet",
+    "Fall",
+    "Environmental"
+  ],
+  "reservedDamageTypes": [
+    "Explosion",
+    "Melee",
+    "Fire",
+    "Vehicle"
+  ]
+}

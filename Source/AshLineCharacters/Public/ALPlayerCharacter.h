@@ -5,6 +5,7 @@
 #include "ALPlayerCharacter.generated.h"
 
 struct FInputActionValue;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FALPlayerDeathFlowEvent);
 
 UCLASS(Blueprintable)
 class ASHLINECHARACTERS_API AALPlayerCharacter : public ACharacter
@@ -17,6 +18,12 @@ public:
     virtual void Landed(const FHitResult& Hit) override;
     virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
     virtual bool CanJumpInternal_Implementation() const override;
+
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Death") void RequestRestartFromCheckpoint();
+    UFUNCTION(BlueprintPure, Category="ASH LINE|Death") bool IsDeathFlowActive() const { return bDeathFlowActive; }
+
+    UPROPERTY(BlueprintAssignable, Category="ASH LINE|Death") FALPlayerDeathFlowEvent OnPlayerDeathFlowStarted;
+    UPROPERTY(BlueprintAssignable, Category="ASH LINE|Death") FALPlayerDeathFlowEvent OnRestartCheckpointRequested;
 
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
@@ -47,6 +54,8 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALPlayerStateComponent> PlayerStateComponent;
 
 protected:
+    UFUNCTION() void HandleHealthDeath();
+    void HandleFallDamage();
     void RefreshMovementState();
     void RefreshMovementSpeed();
     bool HasMovementSettings() const;
@@ -54,4 +63,7 @@ protected:
     bool bSprintActive = false;
     EALMovementState MovementState = EALMovementState::Walking;
     float CurrentPitch = 0.0f;
+    bool bDeathFlowActive = false;
+    float LastFallSpeed = 0.0f;
+    FTimerHandle DeathRestartTimer;
 };

@@ -1,19 +1,18 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ALInfantryCharacter.generated.h"
+#include "ALDamageTestEnemy.generated.h"
 
 UCLASS(Blueprintable)
-class ASHLINEAI_API AALInfantryCharacter : public ACharacter
+class ASHLINECOMBAT_API AALDamageTestEnemy : public ACharacter
 {
     GENERATED_BODY()
 public:
-    AALInfantryCharacter();
-
+    AALDamageTestEnemy();
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Health") TObjectPtr<class UALHealthComponent> HealthComponent;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Death") float CorpseLifetime = 0.0f;
-
 protected:
-    UFUNCTION() void HandleHealthDeath();
+    virtual void BeginPlay() override;
+    UFUNCTION() void HandleDeath();
     bool bDeathHandled = false;
 };

@@ -1,5 +1,5 @@
 #include "ALPlayerCharacter.h"
-#include "ALHealthComponent.h"
+#include "Components/ALHealthComponent.h"
 #include "ALCharacterComponents.h"
 #include "ALInteractionComponent.h"
 #include "ALPlayerMovementSettings.h"
@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "GameFramework/Controller.h"
+#include "TimerManager.h"
 
 namespace ALPlayerDefaults
 {
@@ -18,6 +19,10 @@ namespace ALPlayerDefaults
     constexpr float JumpVelocity = 420.0f;
     constexpr float MinPitch = -85.0f;
     constexpr float MaxPitch = 85.0f;
+    constexpr float DeathRestartDelay = 1.5f;
+    constexpr float FallMinimumSpeed = 900.0f;
+    constexpr float FallFatalSpeed = 2200.0f;
+    constexpr float FallMaxDamage = 100.0f;
 }
 
 AALPlayerCharacter::AALPlayerCharacter()
@@ -56,6 +61,7 @@ void AALPlayerCharacter::BeginPlay()
         GetCharacterMovement()->MaxWalkSpeedCrouched = ALPlayerDefaults::CrouchSpeed;
         CurrentPitch = FMath::Clamp(GetControlRotation().Pitch, ALPlayerDefaults::MinPitch, ALPlayerDefaults::MaxPitch);
     }
+    if (HealthComponent) HealthComponent->OnDeath.AddDynamic(this, &AALPlayerCharacter::HandleHealthDeath);
     RefreshMovementSpeed();
     RefreshMovementState();
 }
@@ -68,7 +74,7 @@ bool AALPlayerCharacter::HasMovementSettings() const
 void AALPlayerCharacter::Move(const FInputActionValue& Value)
 {
     if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) return;
-    FVector2D Input = Value.Get<FVector2D>().GetClampedToMaxSize(1.0f);
+    const FVector2D Input = Value.Get<FVector2D>().GetClampedToMaxSize(1.0f);
     if (Input.IsNearlyZero()) return;
 
     const FRotator ControlRotation = Controller ? Controller->GetControlRotation() : GetActorRotation();
@@ -130,25 +136,15 @@ void AALPlayerCharacter::StopSprint()
 void AALPlayerCharacter::ToggleCrouch()
 {
     if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) return;
-    if (bIsCrouched)
-    {
-        UnCrouch();
-    }
-    else
-    {
-        StopSprint();
-        Crouch();
-    }
+    if (bIsCrouched) UnCrouch();
+    else { StopSprint(); Crouch(); }
     RefreshMovementState();
     RefreshMovementSpeed();
 }
 
 void AALPlayerCharacter::Interact()
 {
-    if (PlayerStateComponent && PlayerStateComponent->CanInteract() && InteractionComponent)
-    {
-        InteractionComponent->TryInteract();
-    }
+    if (PlayerStateComponent && PlayerStateComponent->CanInteract() && InteractionComponent) InteractionComponent->TryInteract();
 }
 
 void AALPlayerCharacter::SetMovementLocked(bool bLocked)
@@ -175,13 +171,69 @@ bool AALPlayerCharacter::CanJumpInternal_Implementation() const
 void AALPlayerCharacter::Landed(const FHitResult& Hit)
 {
     Super::Landed(Hit);
+    HandleFallDamage();
     RefreshMovementState();
 }
 
 void AALPlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
+    if (PreviousMovementMode == MOVE_Falling) LastFallSpeed = FMath::Abs(GetVelocity().Z);
     Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
     RefreshMovementState();
+}
+
+void AALPlayerCharacter::HandleFallDamage()
+{
+    if (!HealthComponent || HealthComponent->IsDead()) return;
+    const FALFallDamageSettings Settings = HealthComponent->HealthConfig ? HealthComponent->HealthConfig->FallDamage : FALFallDamageSettings();
+    const float MinimumSpeed = HealthComponent->HealthConfig ? Settings.MinimumFallSpeed : ALPlayerDefaults::FallMinimumSpeed;
+    const float FatalSpeed = HealthComponent->HealthConfig ? Settings.FatalFallSpeed : ALPlayerDefaults::FallFatalSpeed;
+    const float MaxDamage = HealthComponent->HealthConfig ? Settings.MaxFallDamage : ALPlayerDefaults::FallMaxDamage;
+    const float LandingSpeed = LastFallSpeed;
+    LastFallSpeed = 0.0f;
+    if (LandingSpeed <= MinimumSpeed || FatalSpeed <= MinimumSpeed || MaxDamage <= 0.0f) return;
+
+    const float Alpha = FMath::Clamp((LandingSpeed - MinimumSpeed) / (FatalSpeed - MinimumSpeed), 0.0f, 1.0f);
+    FALDamageData DamageData;
+    DamageData.BaseDamage = FMath::Lerp(0.0f, MaxDamage, Alpha);
+    DamageData.DamageType = EALDamageType::Fall;
+    DamageData.DamageCauser = this;
+    DamageData.HitLocation = GetActorLocation();
+    DamageData.HitNormal = FVector::UpVector;
+    DamageData.bHasHitResult = true;
+    HealthComponent->ApplyDamage(DamageData);
+}
+
+void AALPlayerCharacter::HandleHealthDeath()
+{
+    if (bDeathFlowActive) return;
+    bDeathFlowActive = true;
+    SetMovementLocked(true);
+    SetLookLocked(true);
+    if (PlayerStateComponent)
+    {
+        PlayerStateComponent->SetInteractionEnabled(false);
+        PlayerStateComponent->SetInputLocked(true);
+    }
+    if (InteractionComponent) InteractionComponent->SetInteractionEnabled(false);
+    OnPlayerDeathFlowStarted.Broadcast();
+    if (GetWorld()) GetWorld()->GetTimerManager().SetTimer(DeathRestartTimer, this, &AALPlayerCharacter::RequestRestartFromCheckpoint, ALPlayerDefaults::DeathRestartDelay, false);
+}
+
+void AALPlayerCharacter::RequestRestartFromCheckpoint()
+{
+    if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(DeathRestartTimer);
+    if (HealthComponent) HealthComponent->ResetHealth();
+    bDeathFlowActive = false;
+    if (PlayerStateComponent)
+    {
+        PlayerStateComponent->SetControlBlock(EALPlayerControlBlock::None);
+        PlayerStateComponent->SetInputLocked(false);
+    }
+    if (InteractionComponent) InteractionComponent->SetInteractionEnabled(true);
+    SetLookLocked(false);
+    SetMovementLocked(false);
+    OnRestartCheckpointRequested.Broadcast();
 }
 
 void AALPlayerCharacter::RefreshMovementState()

@@ -171,3 +171,9 @@ python3 Scripts/Validation/size_report.py .
 تم توثيق إعداد `IMC_Player` وInput Actions و`BP_ALPlayerCharacter` و`DA_PlayerMovement` و`WBP_MobileTouchLayer` داخل مجلدات `Content/AshLine/Input/` و`Content/AshLine/Characters/Player/` و`Content/AshLine/UI/Mobile/`. الأفعال الخاصة بالأسلحة والـ Aim والـ Reload والـ Drone محجوزة للمراحل التالية ولا تُنفذ في Prompt 02.
 
 للتفاصيل الكاملة راجع [تقرير Prompt 02](Docs/Prompt02ImplementationReport.md).
+
+## Prompt 03 — Health, Damage and Death
+
+تمت إضافة Health/Damage Framework خفيف داخل `AshLineCombat` عبر `UALHealthComponent` و`UALDamageSystemSubsystem` و`FALDamageData` و`IALDamageReceiver`. يدعم الإصدار الحالي اللاعب وشخصيات Infantry، مع Health وHealing وReset وInvulnerability وDamage Events وDeath Event وFall Damage وEnvironmental Damage Volume، بينما تبقى Armor وVehicle Damage وAdvanced Ragdoll وMultiplayer خارج النطاق.
+
+يرتبط موت اللاعب بـ `UALPlayerStateComponent` لتعطيل الحركة والنظر والتفاعل والإدخال، ثم يرسل Hook لإعادة التشغيل من Checkpoint. كما توجد أدوات Development للضرر والشفاء والقتل وGod Mode، وهي غير فعالة في Shipping. تفاصيل التنفيذ والاختبارات موجودة في [تقرير Prompt 03](Docs/Prompt03ImplementationReport.md).

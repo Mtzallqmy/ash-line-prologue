@@ -1,8 +1,10 @@
 #include "ALWeaponBase.h"
 #include "ALWeaponDataAsset.h"
 #include "ALDamageSystemSubsystem.h"
+#include "Damage/ALDamageData.h"
 #include "Engine/World.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Pawn.h"
 
 AALWeaponBase::AALWeaponBase()
 {
@@ -23,12 +25,16 @@ bool AALWeaponBase::Fire(const FVector& Origin, const FVector& Direction, AActor
     FCollisionQueryParams Params(SCENE_QUERY_STAT(ALWeaponFire), true, InstigatorActor);
     if (GetWorld()->LineTraceSingleByChannel(Hit, Origin, End, ECC_Visibility, Params) && Hit.GetActor())
     {
-        FALDamageEvent Event;
-        Event.Amount = Data->Damage;
-        Event.Type = EALDamageType::Ballistic;
-        Event.Origin = Origin;
-        Event.InstigatorId = InstigatorActor ? InstigatorActor->GetFName() : NAME_None;
-        GetWorld()->GetSubsystem<UALDamageSystemSubsystem>()->ApplyDamage(Hit.GetActor(), Event);
+        FALDamageData DamageData;
+        DamageData.BaseDamage = Data->Damage;
+        DamageData.DamageType = EALDamageType::Bullet;
+        DamageData.Instigator = InstigatorActor ? InstigatorActor->GetInstigatorController() : nullptr;
+        DamageData.DamageCauser = this;
+        DamageData.HitLocation = Hit.ImpactPoint;
+        DamageData.HitNormal = Hit.ImpactNormal;
+        DamageData.BoneName = Hit.BoneName;
+        DamageData.bHasHitResult = Hit.bBlockingHit;
+        GetWorld()->GetSubsystem<UALDamageSystemSubsystem>()->ApplyDamage(Hit.GetActor(), DamageData);
     }
     return true;
 }

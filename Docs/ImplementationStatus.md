@@ -17,3 +17,11 @@
 Multiplayer، مدينة ثانية، دبابات، مروحيات قتالية، متجر، Battle Pass، Accounts backend، Destruction متقدم، Factions كامل، Weather معقد، وCinematics ضخمة. كما لم تُنفذ Weapons أو Shooting أو Damage أو Enemy AI أو Drone Gameplay ضمن Prompt 02.
 
 التقرير التفصيلي لهذه المرحلة موجود في `Docs/Prompt02ImplementationReport.md`.
+
+## Prompt 03 — Health, Damage and Death
+
+تم تنفيذ Health/Damage Framework داخل `AshLineCombat` عبر `UALHealthComponent` و`FALDamageData` و`EALDamageType` و`IALDamageReceiver` و`UALDamageSystemSubsystem`. تمت إضافة Healing وReset وInvulnerability وDamage Events وDeath Once وFall Damage وEnvironmental Damage Volume وDevelopment Debug Helpers وDamage Test Enemy.
+
+تم ربط Player Death مع `UALPlayerStateComponent` لتعطيل الحركة والنظر والتفاعل والإدخال ثم إعادة Checkpoint Hook، وربط Infantry Death بإيقاف الحركة وتعطيل التصادم. نجحت فحوصات Prompt 03 وPrompt 02 وفحوصات المشروع العامة. Compile/Cook/Android Runtime وAutomation Tests تحتاج Unreal Engine وAndroid SDK/NDK على جهاز فعلي.
+
+التقرير التفصيلي موجود في `Docs/Prompt03ImplementationReport.md`.

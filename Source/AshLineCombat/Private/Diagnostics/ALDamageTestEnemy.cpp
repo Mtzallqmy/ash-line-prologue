@@ -1,19 +1,19 @@
-#include "ALInfantryCharacter.h"
+#include "Diagnostics/ALDamageTestEnemy.h"
 #include "Components/ALHealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-AALInfantryCharacter::AALInfantryCharacter()
+AALDamageTestEnemy::AALDamageTestEnemy()
 {
     HealthComponent = CreateDefaultSubobject<UALHealthComponent>(TEXT("HealthComponent"));
 }
 
-void AALInfantryCharacter::BeginPlay()
+void AALDamageTestEnemy::BeginPlay()
 {
     Super::BeginPlay();
-    if (HealthComponent) HealthComponent->OnDeath.AddDynamic(this, &AALInfantryCharacter::HandleHealthDeath);
+    if (HealthComponent) HealthComponent->OnDeath.AddDynamic(this, &AALDamageTestEnemy::HandleDeath);
 }
 
-void AALInfantryCharacter::HandleHealthDeath()
+void AALDamageTestEnemy::HandleDeath()
 {
     if (bDeathHandled) return;
     bDeathHandled = true;
