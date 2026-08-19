@@ -15,7 +15,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RequiredLabels = @('self-hosted', 'Windows', 'X64', 'unreal-5.4', 'android')
-$RunnerName = if ([string]::IsNullOrWhiteSpace($RunnerName)) { "ashline-unreal-$env:COMPUTERNAME" } else { $RunnerName }
+if ([string]::IsNullOrWhiteSpace($RunnerName)) {
+    $RunnerName = "ashline-unreal-$env:COMPUTERNAME"
+}
 
 function Write-Step([string]$Message) {
     Write-Host "[ASH LINE] $Message" -ForegroundColor Cyan
@@ -28,42 +30,51 @@ function Fail([string]$Message) {
 function Assert-Administrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-    if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        Fail 'شغّل PowerShell بصفة Administrator ثم أعد التنفيذ.'
+    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
+    if (-not $principal.IsInRole($adminRole)) {
+        Fail 'Run PowerShell or VS Code as Administrator, then try again.'
     }
 }
 
 function Resolve-RequiredPath([string]$Candidate, [string]$Name) {
     if ([string]::IsNullOrWhiteSpace($Candidate)) {
-        Fail "المتغير $Name غير محدد. مرره للسكربت أو عرّفه في Environment Variables."
+        Fail "$Name is empty. Pass it to the script or define the environment variable."
     }
-    $resolved = [Environment]::ExpandEnvironmentVariables($Candidate)
-    if (-not (Test-Path -LiteralPath $resolved -PathType Container)) {
-        Fail "المسار $Name غير موجود: $resolved"
+    $expanded = [Environment]::ExpandEnvironmentVariables($Candidate)
+    if (-not (Test-Path -LiteralPath $expanded -PathType Container)) {
+        Fail "$Name was not found: $expanded"
     }
-    return (Resolve-Path -LiteralPath $resolved).Path
+    return (Resolve-Path -LiteralPath $expanded).Path
 }
 
 function Assert-File([string]$Path, [string]$Description) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        Fail "لم يتم العثور على $Description في: $Path"
+        Fail "$Description was not found: $Path"
     }
 }
 
 function Set-EnvironmentValue([string]$Name, [string]$Value) {
     [Environment]::SetEnvironmentVariable($Name, $Value, 'Machine')
     Set-Item -Path "Env:$Name" -Value $Value
-    Write-Step "تم ضبط Machine Environment Variable: $Name=$Value"
+    Write-Step "Set machine environment variable: $Name"
 }
 
 Assert-Administrator
 
-if ([string]::IsNullOrWhiteSpace($UnrealRoot)) { $UnrealRoot = $env:UE_ROOT }
-if ([string]::IsNullOrWhiteSpace($AndroidHome)) { $AndroidHome = $env:ANDROID_HOME }
-if ([string]::IsNullOrWhiteSpace($AndroidNdkHome)) { $AndroidNdkHome = $env:ANDROID_NDK_HOME }
-if ([string]::IsNullOrWhiteSpace($JavaHome)) { $JavaHome = $env:JAVA_HOME }
+if ([string]::IsNullOrWhiteSpace($UnrealRoot)) {
+    $UnrealRoot = $env:UE_ROOT
+}
+if ([string]::IsNullOrWhiteSpace($AndroidHome)) {
+    $AndroidHome = $env:ANDROID_HOME
+}
+if ([string]::IsNullOrWhiteSpace($AndroidNdkHome)) {
+    $AndroidNdkHome = $env:ANDROID_NDK_HOME
+}
+if ([string]::IsNullOrWhiteSpace($JavaHome)) {
+    $JavaHome = $env:JAVA_HOME
+}
 
-Write-Step 'التحقق من Unreal Engine 5.4 وAndroid SDK/NDK وJava.'
+Write-Step 'Checking Unreal Engine, Android SDK/NDK, and Java.'
 $UnrealRoot = Resolve-RequiredPath $UnrealRoot 'UE_ROOT'
 $AndroidHome = Resolve-RequiredPath $AndroidHome 'ANDROID_HOME'
 $AndroidNdkHome = Resolve-RequiredPath $AndroidNdkHome 'ANDROID_NDK_HOME'
@@ -73,9 +84,13 @@ $ubtCandidates = @(
     (Join-Path $UnrealRoot 'Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe'),
     (Join-Path $UnrealRoot 'Engine\Binaries\DotNET\UnrealBuildTool.exe')
 )
-if (-not ($ubtCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })) {
-    Fail "لم يتم العثور على UnrealBuildTool.exe داخل UE_ROOT: $UnrealRoot"
+$ubtFound = $ubtCandidates | Where-Object {
+    Test-Path -LiteralPath $_ -PathType Leaf
 }
+if (-not $ubtFound) {
+    Fail "UnrealBuildTool.exe was not found below UE_ROOT: $UnrealRoot"
+}
+
 Assert-File (Join-Path $UnrealRoot 'Engine\Build\BatchFiles\RunUAT.bat') 'RunUAT.bat'
 Assert-File (Join-Path $UnrealRoot 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe') 'UnrealEditor-Cmd.exe'
 Assert-File (Join-Path $AndroidHome 'platform-tools\adb.exe') 'adb.exe'
@@ -92,7 +107,7 @@ if ($PersistEnvironment) {
     Set-EnvironmentValue 'JAVA_HOME' $JavaHome
 }
 
-Write-Step 'التحقق من إصدارات الأدوات.'
+Write-Step 'Checking tool versions.'
 & (Join-Path $JavaHome 'bin\java.exe') -version 2>&1 | Select-Object -First 1 | Write-Host
 & (Join-Path $AndroidHome 'platform-tools\adb.exe') version 2>&1 | Select-Object -First 1 | Write-Host
 
@@ -103,23 +118,29 @@ $RunnerRoot = (Resolve-Path -LiteralPath $RunnerRoot).Path
 Set-Location -LiteralPath $RunnerRoot
 
 if (Test-Path -LiteralPath (Join-Path $RunnerRoot '.runner')) {
-    Fail "هذا المجلد يحتوي Runner مسجلاً مسبقًا: $RunnerRoot. استخدم مجلدًا جديدًا أو أزل التسجيل بالطريقة الرسمية أولًا."
+    Fail "This folder already contains a registered Runner: $RunnerRoot"
 }
 
-Write-Step 'اكتشاف أحدث إصدار رسمي من GitHub Actions Runner.'
+Write-Step 'Finding the latest official GitHub Actions Runner.'
 $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/actions/runner/releases/latest' -Headers @{
     Accept = 'application/vnd.github+json'
     'User-Agent' = 'ASH-LINE-Runner-Setup'
 }
-$asset = $release.assets | Where-Object { $_.name -match '^actions-runner-win-x64-.*\.zip$' } | Select-Object -First 1
-if ($null -eq $asset) { Fail 'تعذر العثور على Windows x64 Runner package في أحدث إصدار.' }
+$asset = $release.assets | Where-Object {
+    $_.name -match '^actions-runner-win-x64-.*\.zip$'
+} | Select-Object -First 1
+if ($null -eq $asset) {
+    Fail 'Could not find the Windows x64 Runner package.'
+}
 
 $zipPath = Join-Path $RunnerRoot $asset.name
-Write-Step "تنزيل $($asset.name)."
+Write-Step "Downloading $($asset.name)."
 Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath -UseBasicParsing
-if ((Get-Item -LiteralPath $zipPath).Length -lt 1MB) { Fail 'ملف Runner الذي تم تنزيله غير صالح أو ناقص.' }
+if ((Get-Item -LiteralPath $zipPath).Length -lt 1MB) {
+    Fail 'The downloaded Runner archive is missing or invalid.'
+}
 
-Write-Step 'فك ضغط Runner.'
+Write-Step 'Extracting the Runner.'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $RunnerRoot)
 Remove-Item -LiteralPath $zipPath -Force
@@ -129,32 +150,47 @@ Assert-File (Join-Path $RunnerRoot 'run.cmd') 'run.cmd'
 $registrationToken = $env:GITHUB_RUNNER_REGISTRATION_TOKEN
 $secureToken = $null
 if ([string]::IsNullOrWhiteSpace($registrationToken)) {
-    $secureToken = Read-Host 'أدخل Registration Token المؤقت من GitHub' -AsSecureString
-    $registrationToken = [Runtime.InteropServices.Marshal]::PtrToStringBSTR(
-        [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
-    )
+    $secureToken = Read-Host 'Enter the temporary GitHub Registration Token' -AsSecureString
+    $tokenPtr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
+    try {
+        $registrationToken = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($tokenPtr)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($tokenPtr)
+    }
 }
-if ([string]::IsNullOrWhiteSpace($registrationToken)) { Fail 'Registration Token فارغ.' }
+if ([string]::IsNullOrWhiteSpace($registrationToken)) {
+    Fail 'Registration Token is empty.'
+}
 
 $labels = $RequiredLabels -join ','
-Write-Step "تسجيل Runner باسم $RunnerName وبLabels: $labels"
+Write-Step "Registering Runner $RunnerName with labels: $labels"
 & (Join-Path $RunnerRoot 'config.cmd') --unattended --url $RepositoryUrl --token $registrationToken --name $RunnerName --labels $labels --work '_work' --replace
-if ($LASTEXITCODE -ne 0) { Fail "فشل تسجيل Runner، exit code=$LASTEXITCODE" }
+if ($LASTEXITCODE -ne 0) {
+    Fail "Runner registration failed. Exit code: $LASTEXITCODE"
+}
 
 $registrationToken = $null
-if ($secureToken) { $secureToken.Dispose() }
+if ($null -ne $secureToken) {
+    $secureToken.Dispose()
+}
 Remove-Item Env:GITHUB_RUNNER_REGISTRATION_TOKEN -ErrorAction SilentlyContinue
 
 if ($InstallAsService) {
-    Write-Step 'تثبيت Runner كخدمة Windows.'
+    Write-Step 'Installing the Runner Windows service.'
     & (Join-Path $RunnerRoot 'svc.cmd') install
-    if ($LASTEXITCODE -ne 0) { Fail "فشل تثبيت Windows Service، exit code=$LASTEXITCODE" }
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Windows service installation failed. Exit code: $LASTEXITCODE"
+    }
     & (Join-Path $RunnerRoot 'svc.cmd') start
-    if ($LASTEXITCODE -ne 0) { Fail "فشل تشغيل Windows Service، exit code=$LASTEXITCODE" }
-    Write-Step 'تم تشغيل Runner كخدمة. لا تغلق الجهاز أو توقف الخدمة أثناء البناء.'
-} else {
-    Write-Step 'تم التسجيل بنجاح. شغّل run.cmd في هذه النافذة لإبقاء Runner متصلًا.'
-    Write-Host "cd `"$RunnerRoot`"; .\run.cmd" -ForegroundColor Yellow
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Windows service start failed. Exit code: $LASTEXITCODE"
+    }
+    Write-Step 'Runner service is running.'
+}
+else {
+    Write-Step 'Runner registered. Keep this terminal open and run run.cmd.'
+    Write-Host "Set-Location '$RunnerRoot'; .\run.cmd" -ForegroundColor Yellow
 }
 
-Write-Step 'اكتمل إعداد Runner. تحقق من ظهوره في GitHub قبل انتظار الـWorkflow.'
+Write-Step 'Runner setup completed. Verify it is online in GitHub Actions.'
