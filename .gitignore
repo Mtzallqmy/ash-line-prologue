@@ -20,3 +20,5 @@ Saved/
 *.key
 secrets/
 credentials/
+__pycache__/
+*.pyc

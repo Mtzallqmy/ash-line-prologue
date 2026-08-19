@@ -1,0 +1,33 @@
+{
+  "package": {
+    "schemaVersion": 1,
+    "packageId": "test.content01",
+    "packageType": "Mission",
+    "version": 1,
+    "minGameVersion": "0.1.0",
+    "maxGameVersion": "",
+    "downloadSize": 859,
+    "installedSize": 43,
+    "dependencies": [
+      "core"
+    ],
+    "optionalDependencies": [],
+    "mountPriority": 100,
+    "sha256": "f71a92e9e21c045038f63c71e2b6a8c81ce3bba614b15e2a48fe7d321778f892",
+    "signature": "",
+    "publicKeyId": "",
+    "contentRoot": "/Game/AshLine/TestContent/",
+    "entryAssets": [
+      "/Game/AshLine/TestContent/test_asset"
+    ],
+    "patchFromVersion": 0,
+    "patchSize": 0,
+    "builtAtUtc": "2026-08-19T16:39:36.218139+00:00"
+  },
+  "topFiles": [
+    {
+      "path": "test_asset.txt",
+      "bytes": 43
+    }
+  ]
+}

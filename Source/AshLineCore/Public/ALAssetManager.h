@@ -10,4 +10,8 @@ class ASHLINECORE_API UALAssetManager : public UAssetManager
 public:
     static UALAssetManager& Get();
     virtual void StartInitialLoading() override;
+    bool RegisterMountedPackageRoot(const FString& RootPath);
+    bool UnregisterMountedPackageRoot(const FString& RootPath);
+protected:
+    UPROPERTY() TArray<FString> MountedPackageRoots;
 };

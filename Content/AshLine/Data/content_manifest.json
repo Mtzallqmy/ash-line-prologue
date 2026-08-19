@@ -1,69 +1,114 @@
 {
+  "schemaVersion": 1,
   "gameVersion": "0.1.0",
   "contentVersion": 1,
+  "manifestSignature": "",
   "packages": [
     {
       "id": "core",
+      "packageType": "Core",
       "version": 1,
+      "minGameVersion": "0.1.0",
+      "maxGameVersion": "",
       "downloadSizeBytes": 0,
       "installedSizeBytes": 0,
-      "hash": "",
+      "mountPriority": 0,
+      "sha256": "",
+      "signature": "",
+      "publicKeyId": "",
+      "contentRoot": "/Game/AshLine/Core/",
+      "entryAssets": [],
       "dependencies": [],
+      "optionalDependencies": [],
       "required": true,
       "url": "",
-      "assetDeliveryIdentifier": "core"
+      "assetDeliveryIdentifier": "core",
+      "patchFromVersion": 0,
+      "patchSizeBytes": 0
     },
     {
       "id": "city_namar_prologue",
+      "packageType": "City",
       "version": 1,
+      "minGameVersion": "0.1.0",
       "downloadSizeBytes": 0,
       "installedSizeBytes": 0,
-      "hash": "",
-      "dependencies": [
-        "core"
-      ],
-      "required": true,
+      "mountPriority": 100,
+      "sha256": "",
+      "signature": "",
+      "publicKeyId": "",
+      "contentRoot": "/Game/AshLine/Maps/Namar/",
+      "entryAssets": ["/Game/AshLine/Maps/Namar/L_Namar_Prologue"],
+      "dependencies": ["core"],
+      "optionalDependencies": ["weapons_pack_01", "audio_core"],
+      "required": false,
       "url": "",
-      "assetDeliveryIdentifier": "city_namar_prologue"
+      "assetDeliveryIdentifier": "city_namar_prologue",
+      "patchFromVersion": 0,
+      "patchSizeBytes": 0
     },
     {
       "id": "weapons_pack_01",
+      "packageType": "WeaponPack",
       "version": 1,
+      "minGameVersion": "0.1.0",
       "downloadSizeBytes": 0,
       "installedSizeBytes": 0,
-      "hash": "",
-      "dependencies": [
-        "core"
-      ],
-      "required": true,
+      "mountPriority": 80,
+      "sha256": "",
+      "signature": "",
+      "publicKeyId": "",
+      "contentRoot": "/Game/AshLine/Weapons/",
+      "entryAssets": [],
+      "dependencies": ["core"],
+      "optionalDependencies": [],
+      "required": false,
       "url": "",
-      "assetDeliveryIdentifier": "weapons_pack_01"
+      "assetDeliveryIdentifier": "weapons_pack_01",
+      "patchFromVersion": 0,
+      "patchSizeBytes": 0
     },
     {
       "id": "audio_core",
+      "packageType": "AudioPack",
       "version": 1,
+      "minGameVersion": "0.1.0",
       "downloadSizeBytes": 0,
       "installedSizeBytes": 0,
-      "hash": "",
-      "dependencies": [
-        "core"
-      ],
-      "required": true,
+      "mountPriority": 60,
+      "sha256": "",
+      "signature": "",
+      "publicKeyId": "",
+      "contentRoot": "/Game/AshLine/Audio/",
+      "entryAssets": [],
+      "dependencies": ["core"],
+      "optionalDependencies": [],
+      "required": false,
       "url": "",
-      "assetDeliveryIdentifier": "audio_core"
+      "assetDeliveryIdentifier": "audio_core",
+      "patchFromVersion": 0,
+      "patchSizeBytes": 0
     },
     {
       "id": "localization_core",
+      "packageType": "Localization",
       "version": 1,
+      "minGameVersion": "0.1.0",
       "downloadSizeBytes": 0,
       "installedSizeBytes": 0,
-      "hash": "",
-      "dependencies": [
-        "core"
-      ],
-      "required": true,
+      "mountPriority": 40,
+      "sha256": "",
+      "signature": "",
+      "publicKeyId": "",
+      "contentRoot": "/Game/AshLine/Localization/",
+      "entryAssets": [],
+      "dependencies": ["core"],
+      "optionalDependencies": [],
+      "required": false,
       "url": "",
-      "assetDeliveryIdentifier": "localization_core"
+      "assetDeliveryIdentifier": "localization_core",
+      "patchFromVersion": 0,
+      "patchSizeBytes": 0
     }
   ]
 }

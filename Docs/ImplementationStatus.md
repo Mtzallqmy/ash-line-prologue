@@ -41,3 +41,11 @@ Multiplayer، مدينة ثانية، دبابات، مروحيات قتالية
 نجح `validate_prompt05.py` مع جميع فحوصات Prompt 04 وPrompt 03 وPrompt 02 وفحوصات المشروع العامة. لا يمكن إعلان Android Prototype Release أو Runtime PASS قبل Unreal Compile/Cook/Package وتشغيل `L_CombatTest` على جهاز Android فعلي.
 
 التقرير التفصيلي موجود في `Docs/Prompt05ImplementationReport.md`.
+
+## Prompt 06 — Modular Content Delivery + ALPACK
+
+تم تنفيذ Content Manager subsystem وPackage Registry وManifest Schema v1 وValidator وDependency Resolver وMount abstraction وLocal Import/Install/Remove/Update foundation وAsset Manager hooks وCDN/PAD stubs وBuildALPack tool. تم الحفاظ على SaveGame خارج Registry، ومنع Mount قبل Verify، ومنع Native Code داخل Content-only packages.
+
+نجحت فحوصات `validate_content_system.py` و`validate_project.py` و`static_surface_check.py` و`git diff --check`. تم إنشاء Fixture صغيرة `Releases/Content/Development/AshLine_TestContent_v1.alpack`.
+
+تجهيز APK متوقف مؤقتًا حتى رفع هذا التحديث، ثم يحتاج Unreal Engine وAndroid SDK/NDK/JDK وAndroid SAF وPak/IoStore Cook للاختبار الفعلي. التفاصيل في `Docs/ModularContentSystemReport.md` و`Docs/ContentSystem.md`.

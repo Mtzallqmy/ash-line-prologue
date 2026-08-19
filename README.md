@@ -193,3 +193,11 @@ python3 Scripts/Validation/size_report.py .
 يعيد العدو استخدام `UALHealthComponent` و`UALWeaponComponent` و`AALWeaponBase` من المراحل السابقة. يطلق AI عبر Reaction Timer وAim Error وBurst/Pause، وتصل الطلقات إلى `FALDamageData` وHealth System نفسه. يرسل إطلاق اللاعب Gunshot Noise إلى Core Noise Subsystem لتستجيب AI القريبة بالسمع، ويرسل موت العدو `OnEnemyKilled` للمهمات اللاحقة.
 
 تمت إضافة `DA_AI_Soldier_Basic` و`DA_AI_Soldier_Trained` كبيانات JSON، ودليل إعداد AI وPatrol وCover وSpawner، وخطة `L_CombatTest`. تفاصيل التنفيذ والاختبارات والقيود موجودة في [تقرير Prompt 05](Docs/Prompt05ImplementationReport.md).
+
+## Prompt 06 — Modular Content Delivery وALPACK
+
+تمت إضافة بنية Content Delivery مستقلة داخل `AshLineContent` باستخدام `UALContentManagerSubsystem` و`UALPackageRegistry` و`UALPackageValidator` و`UALPackageMountManager`، مع Local Delivery وCDN/PAD service stubs وAsset Manager scan hooks. يدعم النظام Manifest Schema Version 1 وPackage IDs ثابتة وVersioning وDependencies وOptional Dependencies وSHA-256 وSignature metadata وMount Priority وPatch readiness وRegistry recovery.
+
+الحزمة المحلية تستخدم تنسيق `.alpack` يحتوي `manifest.json` و`content/` و`optional_metadata/` و`signature.dat` عند التوقيع. أداة البناء هي `Scripts/Content/BuildALPack.py`، ويوجد Fixture صغير باسم `Releases/Content/Development/AshLine_TestContent_v1.alpack`. الحزم Content-only ولا تسمح بـ Native Libraries أو Executables أو Scripts تنفيذية.
+
+تم توثيق التدفق الكامل في [ContentSystem.md](Docs/ContentSystem.md)، والتقرير في [ModularContentSystemReport.md](Docs/ModularContentSystemReport.md). Android File Picker وPak/IoStore وCDN وGoogle Play Asset Delivery الفعلية ما زالت تحتاج Unreal/Android Toolchain قبل إعلان Runtime Release.
