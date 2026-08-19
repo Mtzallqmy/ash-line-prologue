@@ -6,25 +6,25 @@
 #include "Modules/ModuleManager.h"
 #include "ALAssetManager.h"
 
-bool UALDirectoryPackageMountBackend::Mount(const FALContentPackage& Package, const FString& PackagePath, FString& OutMessage)
+bool UALDevelopmentDirectoryPackageMountBackend::Mount(const FALContentPackage& Package, const FString& PackagePath, FString& OutMessage)
 {
     if (!FPaths::DirectoryExists(PackagePath)) { OutMessage = TEXT("Package directory does not exist."); return false; }
     if (Package.ContentRoot.IsEmpty()) { OutMessage = TEXT("Package content root is empty."); return false; }
-    OutMessage = TEXT("Directory package mounted in development mode.");
+    OutMessage = TEXT("Development directory backend accepted the package; no Pak or IoStore mount was performed.");
     return true;
 }
 
-bool UALDirectoryPackageMountBackend::Unmount(const FALContentPackage& Package, const FString& PackagePath, FString& OutMessage)
+bool UALDevelopmentDirectoryPackageMountBackend::Unmount(const FALContentPackage& Package, const FString& PackagePath, FString& OutMessage)
 {
-    OutMessage = TEXT("Directory package unmounted.");
+    OutMessage = TEXT("Development directory backend released the package reference.");
     return true;
 }
 
 bool UALPackageMountManager::MountPackage(const FALContentPackage& Package, const FString& PackagePath, FString& OutMessage)
 {
     if (MountedPackages.Contains(Package.PackageId)) { OutMessage = TEXT("Package is already mounted."); return true; }
-    if (!DirectoryBackend) DirectoryBackend = NewObject<UALDirectoryPackageMountBackend>(this);
-    Backend = DirectoryBackend;
+    if (!DevelopmentDirectoryBackend) DevelopmentDirectoryBackend = NewObject<UALDevelopmentDirectoryPackageMountBackend>(this);
+    Backend = DevelopmentDirectoryBackend;
     if (!Backend || !Backend->Mount(Package, PackagePath, OutMessage)) return false;
     if (!RegisterAssetRoots(Package)) { OutMessage = TEXT("Failed to register package asset roots."); return false; }
     MountedPackages.Add(Package.PackageId, PackagePath);

@@ -13,6 +13,7 @@
       "IA_Fire",
       "IA_Aim",
       "IA_Reload",
+      "IA_SwitchWeapon",
       "IA_NextWeapon"
     ],
     "reservedActions": [
@@ -30,14 +31,15 @@
     {"id":"IA_Fire","valueType":"Boolean","pc":"Left Mouse Button","android":"Fire Button","gamepad":"Right Trigger","supportsHold":true},
     {"id":"IA_Aim","valueType":"Boolean","pc":"Right Mouse Button","android":"Aim Button","gamepad":"Left Trigger","supportsHold":true},
     {"id":"IA_Reload","valueType":"Boolean","pc":"R","android":"Reload Button","gamepad":"X"},
-    {"id":"IA_NextWeapon","valueType":"Boolean","pc":"1/2 or Mouse Wheel","android":"Weapon Switch Button","gamepad":"DPad Right"},
+    {"id":"IA_SwitchWeapon","valueType":"Boolean","pc":"Q or 1/2","android":"Weapon Switch Button","gamepad":"DPad Right"},
+    {"id":"IA_NextWeapon","valueType":"Boolean","pc":"Q or 1/2 alias","android":"Weapon Switch Button","gamepad":"DPad Right"},
     {"id":"IA_Drone","valueType":"Boolean","status":"reserved"}
   ],
   "touchLayer": {
     "orientation": "Landscape",
     "left": "Movement stick",
     "right": "Camera drag region",
-    "buttons": ["Jump", "Crouch", "Sprint", "Interact", "Pause", "Fire", "Aim", "Reload", "NextWeapon"],
+    "buttons": ["Jump", "Crouch", "Sprint", "Interact", "Pause", "Fire", "Aim", "Reload", "SwitchWeapon", "NextWeapon"],
     "safeZoneAware": true,
     "dpiScaleAware": true,
     "notchAware": true,

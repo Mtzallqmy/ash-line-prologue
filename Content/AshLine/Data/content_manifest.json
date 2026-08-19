@@ -38,7 +38,7 @@
       "signature": "",
       "publicKeyId": "",
       "contentRoot": "/Game/AshLine/Maps/Namar/",
-      "entryAssets": ["/Game/AshLine/Maps/Namar/L_Namar_Prologue"],
+      "entryAssets": [],
       "dependencies": ["core"],
       "optionalDependencies": ["weapons_pack_01", "audio_core"],
       "required": false,

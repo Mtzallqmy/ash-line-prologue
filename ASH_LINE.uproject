@@ -63,18 +63,6 @@
     {
       "Name": "EnhancedInput",
       "Enabled": true
-    },
-    {
-      "Name": "AIModule",
-      "Enabled": true
-    },
-    {
-      "Name": "GameplayTasks",
-      "Enabled": true
-    },
-    {
-      "Name": "UMG",
-      "Enabled": true
     }
   ]
 }

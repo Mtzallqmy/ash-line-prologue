@@ -3,7 +3,7 @@
 #include "ALContentManifest.h"
 #include "ALPackageMountManager.generated.h"
 
-class UALDirectoryPackageMountBackend;
+class UALDevelopmentDirectoryPackageMountBackend;
 
 class IALPackageMountBackend
 {
@@ -26,12 +26,13 @@ public:
 
 protected:
     TMap<FString, FString> MountedPackages;
-    UPROPERTY() TObjectPtr<UALDirectoryPackageMountBackend> DirectoryBackend;
+    UPROPERTY() TObjectPtr<UALDevelopmentDirectoryPackageMountBackend> DevelopmentDirectoryBackend;
     IALPackageMountBackend* Backend = nullptr;
 };
 
+// Development-only directory backend. Production Pak/IoStore backends must implement IALPackageMountBackend separately.
 UCLASS()
-class ASHLINECONTENT_API UALDirectoryPackageMountBackend : public UObject, public IALPackageMountBackend
+class ASHLINECONTENT_API UALDevelopmentDirectoryPackageMountBackend : public UObject, public IALPackageMountBackend
 {
     GENERATED_BODY()
 public:

@@ -7,6 +7,8 @@
 class UALWeaponDataAsset;
 class UALRecoilComponent;
 class UInputAction;
+class USoundBase;
+class UNiagaraSystem;
 class APawn;
 class USceneComponent;
 
@@ -71,6 +73,7 @@ protected:
     FVector ApplySpread(const FVector& Direction) const;
     float GetCurrentSpread() const;
     void BroadcastAmmoChanged();
+    void ResolveRuntimeAssets();
 
     UPROPERTY(BlueprintReadOnly, Category="Weapon|Runtime") int32 AmmoInMagazine = 0;
     UPROPERTY(BlueprintReadOnly, Category="Weapon|Runtime") int32 ReserveAmmo = 0;
@@ -78,6 +81,8 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category="Weapon|Runtime") bool bIsAiming = false;
     UPROPERTY(BlueprintReadOnly, Category="Weapon|Runtime") bool bWeaponInputEnabled = true;
     UPROPERTY() TObjectPtr<APawn> OwningPawn;
+    UPROPERTY(Transient) TObjectPtr<USoundBase> CachedFireSound;
+    UPROPERTY(Transient) TObjectPtr<UNiagaraSystem> CachedMuzzleFX;
     FVector AimOrigin = FVector::ZeroVector;
     FVector AimDirection = FVector::ForwardVector;
     float NextFireTime = 0.0f;

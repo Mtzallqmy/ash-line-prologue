@@ -20,6 +20,7 @@ public:
     virtual bool CanJumpInternal_Implementation() const override;
 
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Death") void RequestRestartFromCheckpoint();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Death") void ApplyCheckpointRestart(const FTransform& CheckpointTransform);
     UFUNCTION(BlueprintPure, Category="ASH LINE|Death") bool IsDeathFlowActive() const { return bDeathFlowActive; }
 
     UPROPERTY(BlueprintAssignable, Category="ASH LINE|Death") FALPlayerDeathFlowEvent OnPlayerDeathFlowStarted;

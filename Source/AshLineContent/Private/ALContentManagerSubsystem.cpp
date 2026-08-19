@@ -38,6 +38,11 @@ void UALContentManagerSubsystem::Deinitialize()
 bool UALContentManagerSubsystem::InitializeContentSystem()
 {
     if (bInitialized) return true;
+#if UE_BUILD_SHIPPING
+    bAllowUnsignedDevelopmentPackages = false;
+#else
+    bAllowUnsignedDevelopmentPackages = true;
+#endif
     ContentRoot = FPaths::Combine(FPaths::ProjectPersistentDownloadDir(), TEXT("AshLine"));
     InstalledRoot = FPaths::Combine(ContentRoot, TEXT("Content/Installed"));
     DownloadsRoot = FPaths::Combine(ContentRoot, TEXT("Content/Downloads"));
@@ -125,8 +130,16 @@ EALPackageState UALContentManagerSubsystem::GetPackageState(const FString& Packa
 
 bool UALContentManagerSubsystem::SetPackageState(const FString& PackageId, EALPackageState State)
 {
+    if (!Registry || PackageId.IsEmpty()) return false;
     FALInstalledPackageRecord Record;
-    if (!Registry || !Registry->GetRecord(PackageId, Record)) return false;
+    if (!Registry->GetRecord(PackageId, Record))
+    {
+        const bool bTransientState = State == EALPackageState::Queued || State == EALPackageState::Downloading || State == EALPackageState::Downloaded || State == EALPackageState::Verifying || State == EALPackageState::Installing;
+        if (!bTransientState) return false;
+        Record.PackageId = PackageId;
+        Record.State = EALPackageState::NotInstalled;
+        Record.InstallDateUtc = FDateTime::UtcNow().ToIso8601();
+    }
     Record.State = State;
     Record.bMounted = State == EALPackageState::Mounted;
     Registry->SetRecord(Record);
@@ -150,17 +163,36 @@ bool UALContentManagerSubsystem::RequestPackage(const FString& PackageId)
 
 bool UALContentManagerSubsystem::ImportPackage(const FString& FileReference)
 {
-    if (!Validator || FileReference.IsEmpty() || !FPaths::DirectoryExists(FileReference)) { OnPackageError.Broadcast(FileReference, EALContentError::FileNotFound, TEXT("Development import expects an ALPACK directory with manifest.json.")); return false; }
-    const FString SourceManifest = FPaths::Combine(FileReference, TEXT("manifest.json"));
+    return ImportDevelopmentPackageDirectory(FileReference);
+}
+
+bool UALContentManagerSubsystem::ImportPackageFile(const FString& FileReference)
+{
+    OnPackageError.Broadcast(FileReference, EALContentError::InvalidManifest, TEXT(".alpack file import is not implemented yet; external package files remain blocked outside the Development directory workflow."));
+    return false;
+}
+
+bool UALContentManagerSubsystem::ImportDevelopmentPackageDirectory(const FString& DirectoryReference)
+{
+#if UE_BUILD_SHIPPING
+    OnPackageError.Broadcast(DirectoryReference, EALContentError::InvalidSignature, TEXT("External unsigned directory packages are disabled in Shipping until cryptographic verification is implemented."));
+    return false;
+#endif
+    if (!Validator || DirectoryReference.IsEmpty() || !FPaths::DirectoryExists(DirectoryReference))
+    {
+        OnPackageError.Broadcast(DirectoryReference, EALContentError::FileNotFound, TEXT("Development directory import expects a package directory with manifest.json."));
+        return false;
+    }
+    const FString SourceManifest = FPaths::Combine(DirectoryReference, TEXT("manifest.json"));
     FALContentPackage Package;
-    if (!ParsePackageManifest(SourceManifest, Package)) { OnPackageError.Broadcast(FileReference, EALContentError::InvalidManifest, TEXT("Could not read ALPACK manifest.")); return false; }
+    if (!ParsePackageManifest(SourceManifest, Package)) { OnPackageError.Broadcast(DirectoryReference, EALContentError::InvalidManifest, TEXT("Could not read package manifest.")); return false; }
     EALContentError Error; FString Message;
     if (!Validator->ValidatePackage(Package, GlobalManifest.GameVersion.IsEmpty() ? TEXT("0.1.0") : GlobalManifest.GameVersion, bAllowUnsignedDevelopmentPackages ? false : true, Error, Message)) { OnPackageError.Broadcast(Package.PackageId, Error, Message); return false; }
     GlobalManifest.Packages.RemoveAll([&](const FALContentPackage& Existing) { return Existing.PackageId == Package.PackageId; });
     GlobalManifest.Packages.Add(Package);
     const FString TempPackageRoot = FPaths::Combine(TempRoot, Package.PackageId);
     IFileManager::Get().DeleteDirectory(*TempPackageRoot, false, true);
-    if (!IFileManager::Get().CopyDirectoryTree(*TempPackageRoot, *FileReference, true)) { OnPackageError.Broadcast(Package.PackageId, EALContentError::CopyFailed, TEXT("Failed to copy ALPACK to temporary storage.")); return false; }
+    if (!IFileManager::Get().CopyDirectoryTree(*TempPackageRoot, *DirectoryReference, true)) { OnPackageError.Broadcast(Package.PackageId, EALContentError::CopyFailed, TEXT("Failed to copy development package directory to temporary storage.")); return false; }
     if (!InstallPackage(Package.PackageId)) return false;
     return MountPackage(Package.PackageId);
 }
@@ -280,6 +312,17 @@ bool UALContentManagerSubsystem::VerifyPackage(const FString& PackageId)
     EALContentError Error; FString Message;
     const bool bValid = Validator->ValidatePackage(Package, GlobalManifest.GameVersion.IsEmpty() ? TEXT("0.1.0") : GlobalManifest.GameVersion, bAllowUnsignedDevelopmentPackages ? false : true, Error, Message);
     if (!bValid) return FailPackage(PackageId, Error, Message);
+
+    if (!Package.SHA256.IsEmpty())
+    {
+        FString ActualHash;
+        if (!Validator->ComputeDevelopmentDirectoryHash(Record.Path, ActualHash, Message)) return FailPackage(PackageId, EALContentError::HashMismatch, Message);
+        if (!Validator->VerifySHA256(Package.SHA256, ActualHash, Error, Message)) return FailPackage(PackageId, Error, Message);
+    }
+    else if (!bAllowUnsignedDevelopmentPackages)
+    {
+        return FailPackage(PackageId, EALContentError::HashMismatch, TEXT("Shipping package verification requires a content SHA-256."));
+    }
     return true;
 }
 

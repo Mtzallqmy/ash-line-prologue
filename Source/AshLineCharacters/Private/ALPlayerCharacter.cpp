@@ -4,6 +4,7 @@
 #include "ALInteractionComponent.h"
 #include "ALPlayerMovementSettings.h"
 #include "ALPlayerStateComponent.h"
+#include "ALPrologueGameMode.h"
 #include "Components/ALWeaponComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -64,7 +65,11 @@ void AALPlayerCharacter::BeginPlay()
         GetCharacterMovement()->MaxWalkSpeedCrouched = ALPlayerDefaults::CrouchSpeed;
         CurrentPitch = FMath::Clamp(GetControlRotation().Pitch, ALPlayerDefaults::MinPitch, ALPlayerDefaults::MaxPitch);
     }
-    if (HealthComponent) HealthComponent->OnDeath.AddDynamic(this, &AALPlayerCharacter::HandleHealthDeath);
+    if (HealthComponent) HealthComponent->OnDeath.AddUniqueDynamic(this, &AALPlayerCharacter::HandleHealthDeath);
+    if (AALPrologueGameMode* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AALPrologueGameMode>() : nullptr)
+    {
+        OnRestartCheckpointRequested.AddUniqueDynamic(GameMode, &AALPrologueGameMode::HandlePlayerRestartRequested);
+    }
     RefreshMovementSpeed();
     RefreshMovementState();
 }
@@ -249,19 +254,26 @@ void AALPlayerCharacter::HandleHealthDeath()
 void AALPlayerCharacter::RequestRestartFromCheckpoint()
 {
     if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(DeathRestartTimer);
+    if (!bDeathFlowActive) return;
+    OnRestartCheckpointRequested.Broadcast();
+}
+
+void AALPlayerCharacter::ApplyCheckpointRestart(const FTransform& CheckpointTransform)
+{
+    if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(DeathRestartTimer);
+    SetActorTransform(CheckpointTransform, false, nullptr, ETeleportType::TeleportPhysics);
+    if (GetCharacterMovement()) GetCharacterMovement()->StopMovementImmediately();
+    UnCrouch();
     if (HealthComponent) HealthComponent->ResetHealth();
     bDeathFlowActive = false;
-    if (PlayerStateComponent)
-    {
-        PlayerStateComponent->SetControlBlock(EALPlayerControlBlock::None);
-        PlayerStateComponent->SetInputLocked(false);
-    }
+    if (PlayerStateComponent) PlayerStateComponent->SetControlBlock(EALPlayerControlBlock::None);
     if (InteractionComponent) InteractionComponent->SetInteractionEnabled(true);
     if (WeaponComponent) WeaponComponent->SetWeaponInputEnabled(true);
     SetAimFOV(false);
     SetLookLocked(false);
     SetMovementLocked(false);
-    OnRestartCheckpointRequested.Broadcast();
+    RefreshMovementSpeed();
+    RefreshMovementState();
 }
 
 void AALPlayerCharacter::SetAimFOV(bool bAiming)

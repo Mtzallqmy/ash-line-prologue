@@ -14,6 +14,9 @@ public:
     UPROPERTY(BlueprintReadOnly) TMap<FString, EALPackageState> PackageStates;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString LocalRoot;
 
+    bool ImportDevelopmentPackageDirectory(const FString& DirectoryReference);
+    bool ImportPackageFile(const FString& FileReference);
+
     virtual bool FetchManifest_Implementation(FALContentManifest& OutManifest) override;
     virtual bool CheckManifest_Implementation(FALContentManifest& OutManifest) override;
     virtual TArray<FString> GetInstalledPackages_Implementation() override;

@@ -8,3 +8,12 @@ AALPrologueGameMode::AALPrologueGameMode()
     DefaultPawnClass = AALPlayerCharacter::StaticClass();
     ProloguePlayerClass = AALPlayerCharacter::StaticClass();
 }
+
+void AALPrologueGameMode::HandlePlayerRestartRequested()
+{
+    AALPlayerCharacter* Player = nullptr;
+    if (GetWorld() && GetWorld()->GetFirstPlayerController()) Player = Cast<AALPlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
+    if (!IsValid(Player)) return;
+    const FTransform RestartTransform = bUseConfiguredCheckpoint ? CheckpointTransform : Player->GetActorTransform();
+    Player->ApplyCheckpointRestart(RestartTransform);
+}
