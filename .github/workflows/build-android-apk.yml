@@ -1,0 +1,217 @@
+name: ASH LINE Android ARM64 APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: Android build configuration
+        required: true
+        default: Development
+        type: choice
+        options:
+          - Development
+          - Shipping
+
+permissions:
+  contents: read
+
+env:
+  UE_ROOT: ${{ vars.UE_ROOT }}
+  ANDROID_HOME: ${{ vars.ANDROID_HOME }}
+  ANDROID_SDK_ROOT: ${{ vars.ANDROID_HOME }}
+  ANDROID_NDK_HOME: ${{ vars.ANDROID_NDK_HOME }}
+  NDK_HOME: ${{ vars.ANDROID_NDK_HOME }}
+  JAVA_HOME: ${{ vars.JAVA_HOME }}
+
+jobs:
+  build-android-apk:
+    name: Build ASH LINE Android ARM64 (${{ inputs.configuration }})
+    runs-on: [self-hosted, Windows, X64, unreal-5.4, android]
+    timeout-minutes: 180
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout repository with Git LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Verify Unreal Engine installation
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:UE_ROOT)) {
+            throw 'UE_ROOT repository variable is empty.'
+          }
+          $required = @{
+            UnrealBuildTool = Join-Path $env:UE_ROOT 'Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe'
+            RunUAT = Join-Path $env:UE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
+            UnrealEditorCmd = Join-Path $env:UE_ROOT 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
+            UnrealEditor = Join-Path $env:UE_ROOT 'Engine\Binaries\Win64\UnrealEditor.exe'
+          }
+          foreach ($entry in $required.GetEnumerator()) {
+            if (-not (Test-Path -LiteralPath $entry.Value -PathType Leaf)) {
+              throw "$($entry.Key) not found: $($entry.Value)"
+            }
+            Write-Host "$($entry.Key): $($entry.Value)"
+          }
+          & $required.UnrealEditorCmd '-version'
+          if ($LASTEXITCODE -ne 0) { throw 'UnrealEditor-Cmd -version failed.' }
+
+      - name: Verify Android SDK, NDK, and Java
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in @('ANDROID_HOME', 'ANDROID_NDK_HOME', 'JAVA_HOME')) {
+            $value = (Get-Item "Env:$name" -ErrorAction SilentlyContinue).Value
+            if ([string]::IsNullOrWhiteSpace($value)) { throw "$name is empty." }
+            if (-not (Test-Path -LiteralPath $value -PathType Container)) { throw "$name path does not exist: $value" }
+            Write-Host "$name=$value"
+          }
+          $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
+          $aapt = Join-Path $env:ANDROID_HOME 'build-tools\34.0.0\aapt.exe'
+          if (-not (Test-Path -LiteralPath $adb -PathType Leaf)) { throw "ADB not found: $adb" }
+          if (-not (Test-Path -LiteralPath $aapt -PathType Leaf)) { throw "Android Build Tools 34 aapt not found: $aapt" }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:ANDROID_HOME 'platforms\android-34') -PathType Container)) { throw 'Android API 34 platform is missing.' }
+          $ndkProperties = Join-Path $env:ANDROID_NDK_HOME 'source.properties'
+          if (-not (Test-Path -LiteralPath $ndkProperties -PathType Leaf)) { throw "NDK source.properties not found: $ndkProperties" }
+          $env:Path = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\build-tools\34.0.0;$env:Path"
+          java -version
+          if ($LASTEXITCODE -ne 0) { throw 'java -version failed.' }
+          & $adb version
+          if ($LASTEXITCODE -ne 0) { throw 'adb version failed.' }
+          Get-Content -LiteralPath $ndkProperties
+
+      - name: Run project pre-build validation
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & "$env:GITHUB_WORKSPACE\Scripts\Build\ValidateBeforeBuild.ps1" -ProjectRoot $env:GITHUB_WORKSPACE -RequireUnreal
+          if ($LASTEXITCODE -ne 0) { throw 'Pre-build validation failed.' }
+
+      - name: Compile ASH_LINEEditor Win64 Development
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ubt = Join-Path $env:UE_ROOT 'Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe'
+          $project = Join-Path $env:GITHUB_WORKSPACE 'ASH_LINE.uproject'
+          & $ubt 'ASH_LINEEditor' 'Win64' 'Development' "-Project=$project" '-WaitMutex' '-FromMsBuild'
+          if ($LASTEXITCODE -ne 0) { throw "ASH_LINEEditor Win64 Development failed with exit code $LASTEXITCODE." }
+
+      - name: Generate Combat Prototype Unreal assets
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $editorCmd = Join-Path $env:UE_ROOT 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
+          $project = Join-Path $env:GITHUB_WORKSPACE 'ASH_LINE.uproject'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'Scripts\Editor\CreatePrototypeAssets.py'
+          & $editorCmd $project '-run=pythonscript' "-script=$script" '-unattended' '-nop4' '-log'
+          if ($LASTEXITCODE -ne 0) { throw "CreatePrototypeAssets.py failed with exit code $LASTEXITCODE." }
+
+      - name: Verify Combat Prototype map and configure default map
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $map = Join-Path $env:GITHUB_WORKSPACE 'Content\AshLine\Maps\Namar\L_CombatPrototype.umap'
+          if (-not (Test-Path -LiteralPath $map -PathType Leaf)) { throw "Combat Prototype map was not generated: $map" }
+          $engineIni = Join-Path $env:GITHUB_WORKSPACE 'Config\DefaultEngine.ini'
+          $content = if (Test-Path -LiteralPath $engineIni) { Get-Content -LiteralPath $engineIni -Raw } else { '' }
+          if ($content -notmatch '\[/Script/EngineSettings\.GameMapsSettings\]') {
+            $content += "`r`n[/Script/EngineSettings.GameMapsSettings]`r`n"
+          }
+          if ($content -match '(?m)^GameDefaultMap=.*$') {
+            $content = [regex]::Replace($content, '(?m)^GameDefaultMap=.*$', 'GameDefaultMap=/Game/AshLine/Maps/Namar/L_CombatPrototype')
+          } else {
+            $content += "GameDefaultMap=/Game/AshLine/Maps/Namar/L_CombatPrototype`r`n"
+          }
+          if ($content -match '(?m)^EditorStartupMap=.*$') {
+            $content = [regex]::Replace($content, '(?m)^EditorStartupMap=.*$', 'EditorStartupMap=/Game/AshLine/Maps/Namar/L_CombatPrototype')
+          } else {
+            $content += "EditorStartupMap=/Game/AshLine/Maps/Namar/L_CombatPrototype`r`n"
+          }
+          Set-Content -LiteralPath $engineIni -Value $content -Encoding UTF8
+          Write-Host "Combat Prototype map verified: $map"
+
+      - name: Build Android Development APK
+        if: inputs.configuration == 'Development'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & "$env:GITHUB_WORKSPACE\Scripts\Build\BuildAndroidPrototype.ps1" -ProjectRoot $env:GITHUB_WORKSPACE -Configuration Development
+          if ($LASTEXITCODE -ne 0) { throw "BuildAndroidPrototype.ps1 Development failed with exit code $LASTEXITCODE." }
+
+      - name: Build Android Shipping APK
+        if: inputs.configuration == 'Shipping'
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $keystore = Join-Path $env:RUNNER_TEMP 'ashline-release.keystore'
+          if (-not (Test-Path -LiteralPath $keystore -PathType Leaf)) {
+            throw "Shipping keystore is not present on the self-hosted runner: $keystore"
+          }
+          $env:ANDROID_KEYSTORE = $keystore
+          foreach ($name in @('ANDROID_KEY_ALIAS', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_PASSWORD')) {
+            if ([string]::IsNullOrWhiteSpace((Get-Item "Env:$name" -ErrorAction SilentlyContinue).Value)) {
+              throw "Shipping secret $name is empty."
+            }
+          }
+          & "$env:GITHUB_WORKSPACE\Scripts\Build\BuildAndroidPrototype.ps1" -ProjectRoot $env:GITHUB_WORKSPACE -Configuration Shipping
+          if ($LASTEXITCODE -ne 0) { throw "BuildAndroidPrototype.ps1 Shipping failed with exit code $LASTEXITCODE." }
+
+      - name: Verify APK, size, SHA-256, and Android metadata
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $releaseRoot = Join-Path $env:GITHUB_WORKSPACE 'Releases\Android\0.0.1'
+          $apkRoot = Join-Path $releaseRoot 'APK'
+          $configuration = '${{ inputs.configuration }}'
+          $targetName = if ($configuration -eq 'Shipping') { 'AshLine_CombatPrototype_v0.0.1_android_arm64.apk' } else { 'AshLine_CombatPrototype_v0.0.1_android_arm64_development.apk' }
+          $target = Join-Path $apkRoot $targetName
+          if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+            $candidates = @(Get-ChildItem -Path $releaseRoot -Recurse -Filter '*.apk' -File | Where-Object { $_.FullName -notlike "$apkRoot\*" })
+            if ($candidates.Count -eq 1) {
+              New-Item -ItemType Directory -Force -Path $apkRoot | Out-Null
+              Copy-Item -LiteralPath $candidates[0].FullName -Destination $target -Force
+            }
+          }
+          if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { throw "Expected APK was not found: $target" }
+          $apk = Get-Item -LiteralPath $target
+          $sizeMb = [math]::Round($apk.Length / 1MB, 2)
+          if ($apk.Length -gt 500MB) { throw "APK exceeds 500 MB: $sizeMb MB" }
+          $hash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
+          $reports = Join-Path $releaseRoot 'Reports'
+          $checksums = Join-Path $releaseRoot 'Checksums'
+          New-Item -ItemType Directory -Force -Path $reports, $checksums | Out-Null
+          "$hash  $targetName" | Set-Content -LiteralPath (Join-Path $checksums 'SHA256.txt') -Encoding ASCII
+          & python "$env:GITHUB_WORKSPACE\Scripts\Validation\verify_android_release.py" "$target" (Join-Path $reports "github_actions_$configuration.json")
+          if ($LASTEXITCODE -ne 0) { throw 'APK metadata verification failed.' }
+          @"
+          # GitHub Actions APK Verification
+
+          Configuration: $configuration
+          APK: $targetName
+          APK path: $target
+          APK size bytes: $($apk.Length)
+          APK size MB: $sizeMb
+          SHA-256: $hash
+          Package: com.ashline.game
+          ABI: arm64-v8a
+          Min SDK: 26
+          "@ | Set-Content -LiteralPath (Join-Path $reports 'GitHubActionsBuildReport.md') -Encoding UTF8
+          "APK=$target`nSIZE_MB=$sizeMb`nSHA256=$hash`nCONFIGURATION=$configuration" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-line-android-apk
+          path: Releases/Android/0.0.1/APK/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release reports artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-line-android-reports
+          path: Releases/Android/0.0.1/Reports/**
+          if-no-files-found: error
+          retention-days: 14

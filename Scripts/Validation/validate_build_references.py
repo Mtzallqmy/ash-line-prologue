@@ -144,6 +144,8 @@ required_scripts = [
     "Scripts/Build/BuildAndroidPrototype.sh",
     "Scripts/Editor/CreatePrototypeAssets.py",
     "Scripts/Validation/verify_android_release.py",
+    "Scripts/Validation/validate_github_actions_workflow.py",
+    ".github/workflows/build-android-apk.yml",
     "Releases/Android/0.0.1/Reports/ReleaseReport.md",
     "Releases/Android/0.0.1/Reports/SizeReport.md",
     "Releases/Android/0.0.1/Reports/TestReport.md",

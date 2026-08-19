@@ -260,3 +260,11 @@ Scripts/Build/ValidateBeforeBuild.sh
 تمت إضافة auto-detection لمسار `/usr/lib/android-sdk` ونسخة NDK الأعلى إلى `BuildAndroidRelease.sh`. بقي المانع الوحيد هو عدم وجود Unreal Engine 5.4.x وUnrealBuildTool وUnrealHeaderTool وUnrealEditor-Cmd. لذلك فشلت بوابات Editor وDevelopment وShipping قبل بدء UAT، ولم يتم إنشاء APK أو أصول Unreal ثنائية.
 
 التقرير التنفيذي الكامل موجود في [ReleasePrompt09Report.md](Docs/Build/ReleasePrompt09Report.md)، والحالة الصادقة هي: **BLOCKED: UNREAL ENGINE INSTALLATION REQUIRED**.
+
+## GitHub Actions Android APK Workflow
+
+تمت إضافة Workflow يدوي لبناء APK Android ARM64 عبر Windows self-hosted Unreal Runner في `.github/workflows/build-android-apk.yml`. يدعم الاختيار بين `Development` و`Shipping`، ويتحقق من Unreal Engine وAndroid SDK/NDK وJava، ثم ينفذ Compile وAsset Generation وBuildCookRun ويتأكد من وجود APK حقيقي قبل رفعه كـArtifact.
+
+يحتاج الـRunner إلى Labels: `self-hosted`, `Windows`, `X64`, `unreal-5.4`, `android`. كما يحتاج Variables: `UE_ROOT`, `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`. أسرار Shipping هي `ANDROID_KEY_ALIAS`, `ANDROID_KEYSTORE_PASSWORD`, و`ANDROID_KEY_PASSWORD`، بينما يُحفظ Keystore خارج المستودع في `$RUNNER_TEMP\ashline-release.keystore`.
+
+التفاصيل الكاملة في [GitHubActionsSelfHostedRunner.md](Docs/Build/GitHubActionsSelfHostedRunner.md).
