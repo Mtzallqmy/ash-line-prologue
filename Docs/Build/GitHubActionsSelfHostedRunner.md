@@ -113,3 +113,48 @@ AshLine_CombatPrototype_v0.0.1_android_arm64.apk
 [1]: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_dispatch "GitHub Docs — workflow_dispatch"
 [2]: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners "GitHub Docs — Self-hosted runners"
 [3]: https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts "GitHub Docs — Storing workflow data as artifacts"
+
+## إنشاء Runner على جهاز Windows
+
+تمت إضافة سكربت الإعداد التالي:
+
+```text
+Scripts/Runner/SetupWindowsRunner.ps1
+```
+
+يجب تشغيله على جهاز Windows فعلي مجهز مسبقًا بـ Unreal Engine 5.4.4 وAndroid SDK/NDK وJDK. افتح **Windows PowerShell بصلاحية Administrator**، ثم نفذ:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+Set-Location C:\
+$env:GITHUB_RUNNER_REGISTRATION_TOKEN = '<REGISTRATION_TOKEN_FROM_GITHUB>'
+& 'C:\path\to\ash-line-prologue\Scripts\Runner\SetupWindowsRunner.ps1' `
+  -RunnerRoot 'C:\actions-runner' `
+  -UnrealRoot 'C:\Unreal\UE_5.4.4' `
+  -AndroidHome 'C:\Android\Sdk' `
+  -AndroidNdkHome 'C:\Android\Sdk\ndk\25.2.9519653' `
+  -JavaHome 'C:\Program Files\Eclipse Adoptium\jdk-21' `
+  -RunnerName "ashline-unreal-$env:COMPUTERNAME"
+```
+
+السكربت ينزل أحدث Windows x64 Runner الرسمي، يفحص الملفات الأساسية، يسجل الـRunner بالـLabels المطلوبة، ثم يشغله عبر `run.cmd`. يمكن تشغيله كخدمة Windows بدل النافذة التفاعلية باستخدام `-InstallAsService`، ويمكن حفظ مسارات الأدوات كمتغيرات Machine باستخدام `-PersistEnvironment`.
+
+يصدر GitHub Registration Token مؤقتًا من صفحة **Settings → Actions → Runners → New self-hosted runner**، أو عبر GitHub CLI بصلاحية مناسبة:
+
+```bash
+gh api -X POST repos/Mtzallqmy/ash-line-prologue/actions/runners/registration-token
+```
+
+لا تضع قيمة التوكن داخل Git أو داخل أي ملف في المستودع. التوكن مؤقت ويُمرر إلى PowerShell من خلال متغير البيئة أو يُدخل عند طلب السكربت. بعد التسجيل، تحقق من ظهور Runner في:
+
+```text
+https://github.com/Mtzallqmy/ash-line-prologue/settings/actions/runners
+```
+
+ويجب أن يظهر بحالة `Idle` وبالـLabels التالية:
+
+```text
+self-hosted, Windows, X64, unreal-5.4, android
+```
+
+بعد اتصاله سيستأنف GitHub Run الموجود في حالة `queued` تلقائيًا. إذا انتهت صلاحية التوكن، أصدر توكنًا جديدًا بدل إعادة استخدام القديم. لا يمكن تنفيذ التسجيل الفعلي من بيئة Linux الحالية لأن المطلوب Runner Windows يحمل Unreal Engine 5.4.4؛ هذه البيئة تستطيع إصدار التوكن وتجهيز السكربت فقط.
