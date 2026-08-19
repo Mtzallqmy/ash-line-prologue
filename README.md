@@ -1,20 +1,165 @@
 # ASH LINE — Prologue
 
-هذا المستودع هو أساس مرحلة Phase 1 للعبة تكتيكية ثلاثية الأبعاد مبنية على Unreal Engine 5.4، مع أولوية Android ودعم قابل للتوسعة إلى Windows. تم فصل الأنظمة إلى Modules مستقلة، واعتماد Data-Driven Gameplay، وتصميم Content Delivery يعمل محليًا في هذه المرحلة ويمكن تبديل تنفيذه لاحقًا إلى CDN أو Play Asset Delivery.
+**ASH LINE** هي لعبة حرب تكتيكية ثلاثية الأبعاد، ويُعد هذا المستودع أساس الإصدار الأول **Prologue**. يستهدف المشروع أجهزة Android المتوسطة والقوية مع دعم اللمس، مع الحفاظ على فصل طبقة المنصة بما يسمح بإضافة Windows لاحقًا دون إعادة كتابة أنظمة Gameplay الأساسية.
 
-## حدود التنفيذ الحالية
+> هذا المستودع يقدّم الهيكل البرمجي والمحتوى الوصفي وملفات الإعداد وأدوات التدقيق الخاصة بـ Phase 1. يحتاج إنشاء نسخة Android قابلة للتثبيت إلى جهاز يحتوي على Unreal Engine وAndroid SDK/NDK وبيئة بناء مناسبة.
 
-بيئة التنفيذ الحالية لا تحتوي على Unreal Editor أو Unreal Build Tool، لذلك تم إنشاء **مشروع مصدر Unreal قابل للفتح والتجميع** مع كل الهيكل البرمجي وملفات الإعداد والـ manifests وأدوات التدقيق. لا يمكن من داخل هذه البيئة تنفيذ Cook أو Packaging أو تشغيل Android فعليًا دون تثبيت Unreal Engine وAndroid SDK/NDK وربط مجلد عمل محلي.
+## نطاق الإصدار الأول
 
-## فتح المشروع
+تدور تجربة Prologue في منطقة تدريب صغيرة داخل مدينة **Namar — Training District**، ولا تهدف إلى بناء مدينة كاملة. تتكون المنطقة من شارع رئيسي، وأربعة أزقة، ومبانٍ عربية Modular، وسوق صغير، ومبنى قابل للدخول، وسطحين قابلين للوصول، وساحة، ونقطة عسكرية، ومنطقة استخراج.
 
-افتح `ASH_LINE.uproject` في Unreal Engine 5.4 أو أحدث، ثم أنشئ المحتوى المرئي داخل مجلدات `Content/AshLine/` وفق `Docs/Content/AssetPlan.md`. بعد توليد ملفات المشروع، نفّذ البناء من محرر Unreal أو من `Scripts/Build/BuildPrologue.sh` على جهاز يحتوي على Unreal Engine.
+تتكون التجربة من ثلاث مهمات بمدة مستهدفة تتراوح بين **15 و25 دقيقة**. تعلّم المهمة الأولى الحركة والكاميرا والركض والانحناء والتفاعل. تضيف المهمة الثانية إطلاق النار وإعادة التعبئة واستخدام الغطاء والضرر وذكاء الأعداء. أما المهمة الثالثة فتقدم Scout Drone للاستطلاع وتحديد الأهداف والاشتباك القصير ثم الانتقال إلى الاستخراج، وبعد النجاح تظهر رسالة **Prologue Complete**.
 
-## التحقق المحلي المتاح
+يحتوي الإصدار الأول على ثلاثة أسلحة فقط: Assault Rifle وSMG وPistol. جميعها تعتمد على `WeaponBase` واحد وبيانات `WeaponDataAsset`، ولذلك يمكن إضافة أسلحة مستقبلية من خلال Data Assets بدل إنشاء Class منفصل لكل سلاح.
+
+## المتطلبات التقنية
+
+| العنصر | الاختيار |
+|---|---|
+| المحرك | Unreal Engine 5.4 أو أحدث |
+| المنصة الأساسية | Android |
+| المنصة المستقبلية | Windows |
+| Gameplay والأنظمة عالية الأداء | C++ |
+| ربط المحتوى والأحداث وواجهة المستخدم | Blueprint فوق أنظمة C++ |
+| تكامل Android المستقبلي | Kotlin عند الحاجة فقط |
+| المواد والمؤثرات | Unreal Material System وHLSL عند الحاجة |
+| بيانات المحتوى | JSON وData Assets |
+| الأتمتة والتدقيق | Python |
+| التحكم | Touch وKeyboard/Gamepad عبر نقاط إدخال مشتركة |
+
+لا يعتمد قلب اللعبة على Blueprint-only architecture، ولا يحتوي Gameplay على مسارات ملفات مادية أو مفاتيح حساسة. كما لا يستخدم التصميم فك ZIP التقليدي كأساس لتوزيع الحزم؛ بل يعتمد Manifest وحزمًا معروفة للمحرك وطبقة Delivery قابلة للاستبدال.
+
+## بنية Modules
+
+| Module | المسؤولية |
+|---|---|
+| `AshLineCore` | Damage contracts، Save Game، Settings، Asset Manager والأنظمة المشتركة |
+| `AshLineCharacters` | Player Character والمكونات القابلة لإعادة الاستخدام |
+| `AshLineCombat` | Damage System مركزي قابل للتوسع إلى المركبات لاحقًا |
+| `AshLineWeapons` | `WeaponBase` و`WeaponDataAsset` والـ Ballistics |
+| `AshLineAI` | Infantry AI وحالات Idle وPatrol وSuspicious وAlert وCombat وSearch |
+| `AshLineDrones` | Drone Base والحركة والكاميرا والبطارية والحساس |
+| `AshLineMissions` | Mission Data وبدء المهمة وإنهائها وتقدم الأهداف |
+| `AshLineContent` | Manifest وLocal Delivery وChunk Definitions وواجهات التوزيع |
+| `AshLineUI` | HUD ونقاط التكامل مع Main Menu وMission HUD وDrone HUD وSettings |
+| `AshLinePlatform` | حدود التكامل مع Storage وPermissions وNotifications وPlay Asset Delivery |
+
+## هيكل الملفات
+
+```text
+ASH_LINE/
+├── ASH_LINE.uproject
+├── Config/
+├── Content/AshLine/
+│   ├── Core/
+│   ├── Characters/
+│   ├── Weapons/Data/
+│   ├── Drones/
+│   ├── AI/
+│   ├── Missions/Data/
+│   ├── Maps/Namar/
+│   ├── UI/
+│   ├── Audio/
+│   ├── Materials/
+│   ├── VFX/
+│   ├── Data/
+│   └── Localization/
+├── Source/
+│   ├── AshLineCore/
+│   ├── AshLineCharacters/
+│   ├── AshLineCombat/
+│   ├── AshLineWeapons/
+│   ├── AshLineAI/
+│   ├── AshLineDrones/
+│   ├── AshLineMissions/
+│   ├── AshLineContent/
+│   ├── AshLineUI/
+│   └── AshLinePlatform/
+├── Scripts/Validation/
+├── Scripts/Build/
+└── Docs/
+```
+
+يجب الالتزام بتسمية الأصول باستخدام بادئات واضحة مثل `BP_` و`WBP_` و`DA_` و`SM_` و`SK_` و`T_` و`M_` و`MI_` و`S_` و`A_`. أما الخريطة الرئيسية فتُسمى `L_Namar_Prologue`، وتُمنع الأسماء العامة مثل `NewBlueprint` و`Test2` و`Final_Final`.
+
+## Content Delivery والـ Chunks
+
+يستخدم المشروع ملف `Content/AshLine/Data/content_manifest.json` لتعريف الحزم، وملف `Content/AshLine/Data/chunk_manifest.json` لتعريف توزيعها. الحزم الأساسية هي `core` و`city_namar_prologue` و`weapons_pack_01` و`audio_core` و`localization_core`.
+
+| Chunk ID | الحزمة | المحتوى |
+|---:|---|---|
+| 0 | `core` | Runtime وCore UI وبيانات اللعبة الأساسية |
+| 1 | `city_namar_prologue` | خريطة Namar ومحتوى المهمات |
+| 2 | `weapons_pack_01` | الأسلحة والشخصيات المرتبطة بها |
+| 3 | `audio_core` | أصوات الإطلاق وإعادة التعبئة والصوتيات الأساسية |
+| 4 | `localization_core` | ملفات الترجمة والتوطين |
+
+تعرّف الواجهة `IALContentDeliveryService` وظائف فحص Manifest، استعراض الحزم المثبتة، طلب الحزمة، تتبع التقدم، Mount وUnmount، والتحقق من سلامة الحزمة. يعمل التنفيذ الحالي محليًا، ويمكن استبداله لاحقًا بتنفيذ CDN أو Google Play Asset Delivery دون تعديل أنظمة Gameplay.
+
+## الحفظ
+
+يحفظ الإصدار الأول تقدم المهمات، والإعدادات، والمعدات المفتوحة، وتقدم اللاعب. يستخدم Save Game مع IDs مستقرة بدل تخزين بيانات المدينة نفسها، بحيث يمكن تحديث الأصول أو حذف حزمة اختيارية دون فقدان Save Game.
+
+## ميزانية الحجم والأداء
+
+| الفئة | الهدف |
+|---|---:|
+| Core Runtime + Code | ≤150 MB |
+| Namar Prologue City | ≤170 MB |
+| Characters + Animations | ≤60 MB |
+| Weapons | ≤30 MB |
+| Audio | ≤40 MB |
+| UI + Fonts | ≤15 MB |
+| Drone + VFX | ≤15 MB |
+| Reserved overhead | ≤20 MB |
+| **الحد الصارم للإصدار** | **≤500 MB** |
+
+يجب قياس Shipping Build الحقيقي بدل الاعتماد على تقدير المصدر. لا تستخدم المرحلة الأولى Textures بدقة 4K؛ الافتراضي هو 512–1024، وتُستخدم 2K فقط عند وجود مبرر بصري واضح. يُفضّل استخدام Texture Atlases وTrim Sheets وShared Materials وMaterial Instances وChannel Packing وDecals قابلة لإعادة الاستخدام.
+
+يجب توفير Profiles باسم Low وMedium وHigh، وقياس FPS وRAM وVRAM وDraw Calls وعدد المضلعات وذاكرة Textures وتعقيد Shaders وزمن CPU الخاص بالـ AI. الهدف الأدنى هو Gameplay مستقر على Medium Profile مع تشغيل AI غير الضروري خارج المنطقة النشطة.
+
+## تشغيل المشروع في Unreal Engine
+
+افتح `ASH_LINE.uproject` باستخدام Unreal Engine 5.4 أو أحدث، ثم ولّد ملفات المشروع من قائمة Unreal أو من نظام التشغيل. بعد ذلك أنشئ Blueprint subclasses وData Assets والمحتوى المرئي داخل `Content/AshLine/` وفق الخطة الموجودة في `Docs/Content/AssetPlan.md`، وأنشئ الخريطة `L_Namar_Prologue` طبقًا للتصميم في `Content/AshLine/Maps/Namar/`.
+
+لتجميع المصدر من سطر الأوامر، اضبط متغير البيئة `UE_ROOT` على مسار تثبيت Unreal Engine ثم شغّل:
+
+```bash
+Scripts/Build/BuildPrologue.sh
+```
+
+السكربت يتحقق أولًا من المشروع والـ Manifests، ثم يستدعي Unreal Build Tool. أما Cook وPackage وقياس حجم Android Shipping Build فتُنفذ من جهاز البناء الذي يحتوي على Unreal Engine وAndroid SDK/NDK.
+
+## التحقق المحلي
+
+يمكن تشغيل فحوصات المصدر والبيانات من جذر المشروع:
 
 ```bash
 python3 Scripts/Validation/validate_project.py .
+python3 Scripts/Validation/static_surface_check.py .
 python3 Scripts/Validation/size_report.py .
 ```
 
-الأدوات لا تعتبر المشروع ناجحًا لمجرد وجود الملفات؛ فهي تتحقق من أسماء الـ modules، ووجود الـ manifests، وميزانية الحجم، والمجلدات المطلوبة، وتنتج تقارير قابلة للمراجعة.
+تتحقق الأدوات من وجود Modules العشرة، وتوافق الحزم مع الـ Chunks، وعدم وجود IDs مكررة للأسلحة، وعدم وجود أسماء Placeholder ممنوعة، وتنتج تقريرًا أوليًا للحجم. لا يُعد تقرير المصدر بديلًا عن قياس Shipping Build النهائي.
+
+## Git وGit LFS
+
+يستبعد `.gitignore` مجلدات `Binaries` و`Intermediate` و`Saved` و`DerivedDataCache` وملفات البناء المؤقتة. يحدد `.gitattributes` أصول Unreal الثنائية المناسبة لـ Git LFS، مثل `.uasset` و`.umap` وملفات الصوت والنماذج. إذا لم يكن Git LFS مثبتًا على جهاز التطوير، يجب تثبيته قبل رفع أصول ثنائية كبيرة.
+
+## ما هو خارج Phase 1
+
+لا يتضمن هذا الإصدار Multiplayer أو مدينة ثانية أو دبابات أو مروحيات قتالية أو متجرًا أو Battle Pass أو Accounts Backend أو Destruction متقدمًا أو نظام Factions كاملًا أو طقسًا معقدًا أو Cinematics ضخمة. صُممت الواجهات الحالية بحيث لا تمنع إضافة هذه الأنظمة في إصدارات لاحقة.
+
+## الحالة الحالية والقيود المعروفة
+
+تم تنفيذ هيكل المشروع البرمجي، والـ Modules، وPlayer Components، وWeapon System، وDamage System، وAI State Machine، وDrone Components، وMission Framework، وSave Game، وAsset Manager، وContent Delivery Interfaces، وJSON Manifests، وChunk Definitions، وملفات الإعداد، وأدوات التدقيق.
+
+إنشاء الأصول المرئية الفعلية، وتجميع C++ داخل Unreal، وبناء Namar في Editor، واختبار Touch على جهاز Android، وتشغيل Navigation، وCook وPackaging، وقياس Shipping Build النهائي تحتاج إلى بيئة Unreal Engine وAndroid SDK/NDK. لذلك لا يُعلن المستودع نجاح Definition of Done النهائي قبل تنفيذ هذه الاختبارات على جهاز بناء فعلي.
+
+## الترخيص والمساهمة
+
+هذا المشروع نموذج تطويري خاص بمرحلة ASH LINE Prologue. قبل نشر أصول فنية أو صوتية أو حزم خارجية، يجب التأكد من حقوق استخدامها وتوثيق تراخيصها. تُقبل التعديلات التي تحافظ على فصل Modules، وData-Driven Content، وميزانيات الحجم، وقابلية إضافة City_02 كحزمة مستقلة.
+
+## الأمان
+
+لا تضع Tokens أو مفاتيح API أو بيانات اعتماد داخل المستودع أو ملفات Gameplay أو README. إذا ظهر Token في محادثة أو سجل أو ملف بالخطأ، يجب إلغاؤه فورًا من مزود الخدمة وإنشاء Token بديل بصلاحيات أقل ما يمكن.

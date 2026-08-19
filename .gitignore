@@ -13,3 +13,10 @@ Saved/
 *.VC.VC.opendb
 *.tmp
 *.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/

@@ -1,0 +1,38 @@
+{
+  "missions": [
+    {
+      "id": "mission_01_arrival",
+      "displayName": "Mission 01 — Arrival",
+      "durationMinutes": 6,
+      "objectives": [
+        {"id": "move_to_square", "description": "تحرك إلى الساحة"},
+        {"id": "learn_camera", "description": "تعلم الكاميرا والركض والانحناء"},
+        {"id": "interact_gate", "description": "تفاعل مع البوابة"}
+      ]
+    },
+    {
+      "id": "mission_02_first_contact",
+      "displayName": "Mission 02 — First Contact",
+      "durationMinutes": 8,
+      "objectives": [
+        {"id": "equip_weapon", "description": "جهّز أحد الأسلحة"},
+        {"id": "clear_market", "description": "أطلق النار وأمّن السوق"},
+        {"id": "use_cover", "description": "استخدم الغطاء وأعد التعبئة"},
+        {"id": "secure_checkpoint", "description": "أمّن النقطة العسكرية"}
+      ]
+    },
+    {
+      "id": "mission_03_eye_above",
+      "displayName": "Mission 03 — Eye Above",
+      "durationMinutes": 8,
+      "objectives": [
+        {"id": "launch_drone", "description": "أطلق Scout Drone"},
+        {"id": "mark_enemy", "description": "حدد خصمًا عبر حساس الدرون"},
+        {"id": "short_engagement", "description": "أكمل اشتباكًا قصيرًا"},
+        {"id": "extract", "description": "انتقل إلى منطقة الاستخراج"},
+        {"id": "complete_prologue", "description": "Prologue Complete"}
+      ]
+    }
+  ],
+  "targetPlaytimeMinutes": {"min": 15, "max": 25}
+}
