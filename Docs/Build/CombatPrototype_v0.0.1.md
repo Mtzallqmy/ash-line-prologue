@@ -74,13 +74,15 @@ Implementation commit: `0691ba5` — `feat: prepare combat prototype runtime and
 
 ## 11. Build result
 
-تم تشغيل فحوصات المصدر والـBuild References بنجاح. نتيجة Unreal gate هي:
+تم تشغيل فحوصات المصدر والـBuild References بنجاح. ثم أُعيد تنفيذ بوابات الإصدار الفعلية في آخر محاولة:
 
-```text
-UNREAL BUILD ENVIRONMENT NOT AVAILABLE
-```
+| Gate | Exit | النتيجة |
+|---|---:|---|
+| `BuildEditor.sh` | `2` | `UNREAL BUILD ENVIRONMENT NOT AVAILABLE: set UE_ROOT to a UE 5.4 installation.` |
+| `BuildAndroidPrototype.sh Development` | `2` | `ANDROID BUILD BLOCKED: Set UE_ROOT to the installed Unreal Engine 5.4 directory.` |
+| `BuildAndroidPrototype.sh Shipping` | `2` | `ANDROID BUILD BLOCKED: Set UE_ROOT to the installed Unreal Engine 5.4 directory.` |
 
-وبالتالي لم يتم تنفيذ Generate Project Files أو Compile أو Cook أو Stage أو Package أو Install.
+وبالتالي لم يتم تنفيذ Generate Project Files أو Compile أو Cook أو Stage أو Package أو Install، ولم يظهر أي APK في `Releases/Android/0.0.1`.
 
 ## 12. APK path
 
