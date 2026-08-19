@@ -4,6 +4,7 @@
 #include "ALInteractionComponent.h"
 #include "ALPlayerMovementSettings.h"
 #include "ALPlayerStateComponent.h"
+#include "Components/ALWeaponComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -39,8 +40,10 @@ AALPlayerCharacter::AALPlayerCharacter()
     EquipmentComponent = CreateDefaultSubobject<UALEquipmentComponent>(TEXT("EquipmentComponent"));
     InteractionComponent = CreateDefaultSubobject<UALInteractionComponent>(TEXT("InteractionComponent"));
     PlayerStateComponent = CreateDefaultSubobject<UALPlayerStateComponent>(TEXT("PlayerStateComponent"));
+    WeaponComponent = CreateDefaultSubobject<UALWeaponComponent>(TEXT("WeaponComponent"));
 
     bUseControllerRotationYaw = true;
+    FirstPersonCamera->SetFieldOfView(CurrentFOV);
     GetCharacterMovement()->bOrientRotationToMovement = false;
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
@@ -147,6 +150,27 @@ void AALPlayerCharacter::Interact()
     if (PlayerStateComponent && PlayerStateComponent->CanInteract() && InteractionComponent) InteractionComponent->TryInteract();
 }
 
+void AALPlayerCharacter::StartFire()
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanMove() || !WeaponComponent) return;
+    if (bSprintActive) StopSprint();
+    WeaponComponent->StartFire();
+}
+
+void AALPlayerCharacter::StopFire() { if (WeaponComponent) WeaponComponent->StopFire(); }
+void AALPlayerCharacter::StartAim()
+{
+    if (bSprintActive) StopSprint();
+    if (WeaponComponent) { WeaponComponent->StartAim(); SetAimFOV(true); }
+}
+void AALPlayerCharacter::StopAim()
+{
+    if (WeaponComponent) WeaponComponent->StopAim();
+    SetAimFOV(false);
+}
+void AALPlayerCharacter::ReloadWeapon() { if (WeaponComponent) WeaponComponent->StartReload(); }
+void AALPlayerCharacter::SwitchWeapon() { if (WeaponComponent) WeaponComponent->SwitchToNextWeapon(); }
+
 void AALPlayerCharacter::SetMovementLocked(bool bLocked)
 {
     if (PlayerStateComponent) PlayerStateComponent->SetMovementEnabled(!bLocked);
@@ -216,6 +240,8 @@ void AALPlayerCharacter::HandleHealthDeath()
         PlayerStateComponent->SetInputLocked(true);
     }
     if (InteractionComponent) InteractionComponent->SetInteractionEnabled(false);
+    if (WeaponComponent) WeaponComponent->SetWeaponInputEnabled(false);
+    SetAimFOV(false);
     OnPlayerDeathFlowStarted.Broadcast();
     if (GetWorld()) GetWorld()->GetTimerManager().SetTimer(DeathRestartTimer, this, &AALPlayerCharacter::RequestRestartFromCheckpoint, ALPlayerDefaults::DeathRestartDelay, false);
 }
@@ -231,9 +257,31 @@ void AALPlayerCharacter::RequestRestartFromCheckpoint()
         PlayerStateComponent->SetInputLocked(false);
     }
     if (InteractionComponent) InteractionComponent->SetInteractionEnabled(true);
+    if (WeaponComponent) WeaponComponent->SetWeaponInputEnabled(true);
+    SetAimFOV(false);
     SetLookLocked(false);
     SetMovementLocked(false);
     OnRestartCheckpointRequested.Broadcast();
+}
+
+void AALPlayerCharacter::SetAimFOV(bool bAiming)
+{
+    AALWeaponBase* CurrentWeapon = WeaponComponent ? WeaponComponent->GetCurrentWeapon() : nullptr;
+    TargetFOV = CurrentWeapon ? (bAiming ? CurrentWeapon->GetADSFOV() : CurrentWeapon->GetDefaultFOV()) : 90.0f;
+    AimFOVTransitionTime = CurrentWeapon ? CurrentWeapon->GetAimTransitionTime() : 0.15f;
+    if (GetWorld()) GetWorld()->GetTimerManager().SetTimer(AimFOVTimer, this, &AALPlayerCharacter::UpdateAimFOV, 0.016f, true);
+}
+
+void AALPlayerCharacter::UpdateAimFOV()
+{
+    CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, 0.016f, 1.0f / FMath::Max(AimFOVTransitionTime, 0.01f));
+    if (FirstPersonCamera) FirstPersonCamera->SetFieldOfView(CurrentFOV);
+    if (FMath::IsNearlyEqual(CurrentFOV, TargetFOV, 0.05f))
+    {
+        CurrentFOV = TargetFOV;
+        if (FirstPersonCamera) FirstPersonCamera->SetFieldOfView(CurrentFOV);
+        if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(AimFOVTimer);
+    }
 }
 
 void AALPlayerCharacter::RefreshMovementState()

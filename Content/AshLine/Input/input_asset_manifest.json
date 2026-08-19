@@ -9,12 +9,13 @@
       "IA_Crouch",
       "IA_Sprint",
       "IA_Interact",
-      "IA_Pause"
-    ],
-    "reservedActions": [
+      "IA_Pause",
       "IA_Fire",
       "IA_Aim",
       "IA_Reload",
+      "IA_NextWeapon"
+    ],
+    "reservedActions": [
       "IA_Drone"
     ]
   },
@@ -26,16 +27,17 @@
     {"id":"IA_Sprint","valueType":"Boolean","pc":"Left Shift","android":"Sprint Button","gamepad":"Left Stick Press"},
     {"id":"IA_Interact","valueType":"Boolean","pc":"E","android":"Interact Button","gamepad":"Face Button Left"},
     {"id":"IA_Pause","valueType":"Boolean","pc":"Escape","android":"Pause Button","gamepad":"Menu"},
-    {"id":"IA_Fire","valueType":"Boolean","status":"reserved"},
-    {"id":"IA_Aim","valueType":"Boolean","status":"reserved"},
-    {"id":"IA_Reload","valueType":"Boolean","status":"reserved"},
+    {"id":"IA_Fire","valueType":"Boolean","pc":"Left Mouse Button","android":"Fire Button","gamepad":"Right Trigger","supportsHold":true},
+    {"id":"IA_Aim","valueType":"Boolean","pc":"Right Mouse Button","android":"Aim Button","gamepad":"Left Trigger","supportsHold":true},
+    {"id":"IA_Reload","valueType":"Boolean","pc":"R","android":"Reload Button","gamepad":"X"},
+    {"id":"IA_NextWeapon","valueType":"Boolean","pc":"1/2 or Mouse Wheel","android":"Weapon Switch Button","gamepad":"DPad Right"},
     {"id":"IA_Drone","valueType":"Boolean","status":"reserved"}
   ],
   "touchLayer": {
     "orientation": "Landscape",
     "left": "Movement stick",
     "right": "Camera drag region",
-    "buttons": ["Jump", "Crouch", "Sprint", "Interact", "Pause"],
+    "buttons": ["Jump", "Crouch", "Sprint", "Interact", "Pause", "Fire", "Aim", "Reload", "NextWeapon"],
     "safeZoneAware": true,
     "dpiScaleAware": true,
     "notchAware": true,

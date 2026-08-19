@@ -6,7 +6,7 @@ public class AshLineWeapons : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "PhysicsCore", "AshLineCore", "AshLineCombat" });
-        PrivateDependencyModuleNames.AddRange(new[] { "Projects" });
+        PrivateDependencyModuleNames.AddRange(new[] { "Projects", "Niagara" });
         bEnableExceptions = false;
     }
 }

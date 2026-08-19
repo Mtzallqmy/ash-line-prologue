@@ -33,6 +33,12 @@ public:
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void StopSprint();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void ToggleCrouch();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void Interact();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void StartFire();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void StopFire();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void StartAim();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void StopAim();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void ReloadWeapon();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void SwitchWeapon();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Control") void SetMovementLocked(bool bLocked);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Control") void SetLookLocked(bool bLocked);
 
@@ -52,10 +58,13 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALEquipmentComponent> EquipmentComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALInteractionComponent> InteractionComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALPlayerStateComponent> PlayerStateComponent;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALWeaponComponent> WeaponComponent;
 
 protected:
     UFUNCTION() void HandleHealthDeath();
     void HandleFallDamage();
+    void SetAimFOV(bool bAiming);
+    void UpdateAimFOV();
     void RefreshMovementState();
     void RefreshMovementSpeed();
     bool HasMovementSettings() const;
@@ -65,5 +74,9 @@ protected:
     float CurrentPitch = 0.0f;
     bool bDeathFlowActive = false;
     float LastFallSpeed = 0.0f;
+    float CurrentFOV = 90.0f;
+    float TargetFOV = 90.0f;
+    float AimFOVTransitionTime = 0.15f;
     FTimerHandle DeathRestartTimer;
+    FTimerHandle AimFOVTimer;
 };

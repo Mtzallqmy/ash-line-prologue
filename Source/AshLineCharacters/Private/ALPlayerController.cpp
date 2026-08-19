@@ -45,6 +45,18 @@ void AALPlayerController::SetupInputComponent()
     }
     if (InteractAction) EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &AALPlayerController::HandleInteractStarted);
     if (PauseAction) EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &AALPlayerController::HandlePauseStarted);
+    if (FireAction)
+    {
+        EnhancedInput->BindAction(FireAction, ETriggerEvent::Started, this, &AALPlayerController::HandleFireStarted);
+        EnhancedInput->BindAction(FireAction, ETriggerEvent::Completed, this, &AALPlayerController::HandleFireCompleted);
+    }
+    if (AimAction)
+    {
+        EnhancedInput->BindAction(AimAction, ETriggerEvent::Started, this, &AALPlayerController::HandleAimStarted);
+        EnhancedInput->BindAction(AimAction, ETriggerEvent::Completed, this, &AALPlayerController::HandleAimCompleted);
+    }
+    if (ReloadAction) EnhancedInput->BindAction(ReloadAction, ETriggerEvent::Started, this, &AALPlayerController::HandleReloadStarted);
+    if (NextWeaponAction) EnhancedInput->BindAction(NextWeaponAction, ETriggerEvent::Started, this, &AALPlayerController::HandleNextWeaponStarted);
 }
 
 AALPlayerCharacter* AALPlayerController::GetALPlayer() const
@@ -60,6 +72,12 @@ void AALPlayerController::HandleCrouchStarted(const FInputActionValue&) { if (AA
 void AALPlayerController::HandleSprintStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StartSprint(); }
 void AALPlayerController::HandleSprintCompleted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StopSprint(); }
 void AALPlayerController::HandleInteractStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->Interact(); }
+void AALPlayerController::HandleFireStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StartFire(); }
+void AALPlayerController::HandleFireCompleted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StopFire(); }
+void AALPlayerController::HandleAimStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StartAim(); }
+void AALPlayerController::HandleAimCompleted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->StopAim(); }
+void AALPlayerController::HandleReloadStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->ReloadWeapon(); }
+void AALPlayerController::HandleNextWeaponStarted(const FInputActionValue&) { if (AALPlayerCharacter* Player = GetALPlayer()) Player->SwitchWeapon(); }
 
 void AALPlayerController::HandlePauseStarted(const FInputActionValue&)
 {

@@ -26,7 +26,7 @@ for token in ['ACharacter', 'CameraRoot', 'FirstPersonCamera', 'UALInteractionCo
     if token not in player_h: errors.append(f'player character missing {token}')
 for token in ['Move(const FInputActionValue&', 'Look(const FInputActionValue&', 'StartSprint', 'StopSprint', 'ToggleCrouch', 'StartJump', 'CanJumpInternal_Implementation']:
     if token not in player_h or token not in player_cpp: errors.append(f'player input/state API missing {token}')
-for forbidden in ['BindAxis', 'BindAction', 'AALPlayerCharacter::Fire', 'AALPlayerCharacter::Reload']:
+for forbidden in ['BindAxis', 'BindAction', 'AALPlayerCharacter::Fire(', 'AALPlayerCharacter::Reload(']:
     if forbidden in player_cpp: errors.append(f'legacy or forbidden player hook found: {forbidden}')
 for token in ['UInputMappingContext', 'MoveAction', 'LookAction', 'JumpAction', 'CrouchAction', 'SprintAction', 'InteractAction', 'PauseAction']:
     if token not in controller_h: errors.append(f'controller declaration missing {token}')
@@ -46,8 +46,10 @@ if manifest_path.exists():
     actions = {a['id']: a for a in manifest['actions']}
     for action in ['IA_Move','IA_Look','IA_Jump','IA_Crouch','IA_Sprint','IA_Interact','IA_Pause']:
         if action not in actions: errors.append(f'implemented input action missing: {action}')
-    for action in ['IA_Fire','IA_Aim','IA_Reload','IA_Drone']:
+    for action in ['IA_Drone']:
         if actions.get(action, {}).get('status') != 'reserved': errors.append(f'future action is not reserved: {action}')
+    for action in ['IA_Fire','IA_Aim','IA_Reload']:
+        if action not in actions: errors.append(f'Prompt 04 action missing: {action}')
 
 print('Prompt 02 validation')
 print('====================')

@@ -29,6 +29,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Future Input") TObjectPtr<UInputAction> AimAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Future Input") TObjectPtr<UInputAction> ReloadAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Future Input") TObjectPtr<UInputAction> DroneAction;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Weapon Input") TObjectPtr<UInputAction> NextWeaponAction;
 
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void ApplyPlayerMappingContext();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void SetMobileTouchEnabled(bool bEnabled);
@@ -43,6 +44,12 @@ protected:
     void HandleSprintCompleted(const FInputActionValue& Value);
     void HandleInteractStarted(const FInputActionValue& Value);
     void HandlePauseStarted(const FInputActionValue& Value);
+    void HandleFireStarted(const FInputActionValue& Value);
+    void HandleFireCompleted(const FInputActionValue& Value);
+    void HandleAimStarted(const FInputActionValue& Value);
+    void HandleAimCompleted(const FInputActionValue& Value);
+    void HandleReloadStarted(const FInputActionValue& Value);
+    void HandleNextWeaponStarted(const FInputActionValue& Value);
 
     class AALPlayerCharacter* GetALPlayer() const;
 };

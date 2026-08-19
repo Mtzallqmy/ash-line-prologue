@@ -25,3 +25,11 @@ Multiplayer، مدينة ثانية، دبابات، مروحيات قتالية
 تم ربط Player Death مع `UALPlayerStateComponent` لتعطيل الحركة والنظر والتفاعل والإدخال ثم إعادة Checkpoint Hook، وربط Infantry Death بإيقاف الحركة وتعطيل التصادم. نجحت فحوصات Prompt 03 وPrompt 02 وفحوصات المشروع العامة. Compile/Cook/Android Runtime وAutomation Tests تحتاج Unreal Engine وAndroid SDK/NDK على جهاز فعلي.
 
 التقرير التفصيلي موجود في `Docs/Prompt03ImplementationReport.md`.
+
+## Prompt 04 — Weapon System
+
+تم تنفيذ Weapon Framework Data-Driven داخل `AshLineWeapons` عبر `AALWeaponBase` و`UALWeaponComponent` و`UALRecoilComponent` و`UALWeaponDataAsset`. يدعم النظام Assault Rifle وSMG وPistol، Fire Modes، Ammo وReserve Ammo، Reload، ADS، Spread، Recoil، Hitscan، Hit Zones، وDamage Integration مع `FALDamageData`، كما تم تفعيل Fire/Aim/Reload وإضافة NextWeapon في Player Controller وTouch Manifest.
+
+نجح `validate_prompt04.py` مع فحوصات Prompt 03 وPrompt 02 وفحوصات المشروع العامة. لا تزال ملفات `.uasset` وBlueprints والاختبارات الفعلية على Android وCompile/Cook/Package بحاجة إلى Unreal Build Machine.
+
+التقرير التفصيلي موجود في `Docs/Prompt04ImplementationReport.md`.

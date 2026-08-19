@@ -177,3 +177,11 @@ python3 Scripts/Validation/size_report.py .
 تمت إضافة Health/Damage Framework خفيف داخل `AshLineCombat` عبر `UALHealthComponent` و`UALDamageSystemSubsystem` و`FALDamageData` و`IALDamageReceiver`. يدعم الإصدار الحالي اللاعب وشخصيات Infantry، مع Health وHealing وReset وInvulnerability وDamage Events وDeath Event وFall Damage وEnvironmental Damage Volume، بينما تبقى Armor وVehicle Damage وAdvanced Ragdoll وMultiplayer خارج النطاق.
 
 يرتبط موت اللاعب بـ `UALPlayerStateComponent` لتعطيل الحركة والنظر والتفاعل والإدخال، ثم يرسل Hook لإعادة التشغيل من Checkpoint. كما توجد أدوات Development للضرر والشفاء والقتل وGod Mode، وهي غير فعالة في Shipping. تفاصيل التنفيذ والاختبارات موجودة في [تقرير Prompt 03](Docs/Prompt03ImplementationReport.md).
+
+## Prompt 04 — Weapon System and Combat Prototype
+
+تم تنفيذ Weapon Framework Data-Driven داخل `AshLineWeapons` عبر `AALWeaponBase` و`UALWeaponComponent` و`UALRecoilComponent` و`UALWeaponDataAsset`. يدعم الإصدار الحالي Assault Rifle وSMG وPistol من خلال Data Assets وIDs ثابتة، مع Full Auto وSemi Auto وAmmo وReserve Ammo وReload وAim وADS FOV وSpread وRecoil وHitscan وHit Zones و`FALDamageData`.
+
+تم تفعيل `IA_Fire` و`IA_Aim` و`IA_Reload` وإضافة `IA_NextWeapon`، مع تحديث Touch Layer لأزرار Fire وAim وReload وWeapon Switch. لا يحتوي Widget على منطق الرماية؛ تمر الأفعال عبر Player Controller ثم Player Character ثم Weapon Component ثم Weapon Base. يمكن لـ AI لاحقًا استخدام `SetAimDirection` و`FireAtTarget` دون الاعتماد على Mouse أو Touch.
+
+لتفاصيل التنفيذ والاختبارات راجع [تقرير Prompt 04](Docs/Prompt04ImplementationReport.md) و[خطة محتوى الأسلحة](Content/AshLine/Weapons/README.md).
