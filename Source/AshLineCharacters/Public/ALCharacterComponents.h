@@ -21,14 +21,3 @@ public:
     UPROPERTY(BlueprintReadOnly, Category="Equipment") FName EquippedId = NAME_None;
     UFUNCTION(BlueprintCallable, Category="Equipment") void Equip(FName Id) { EquippedId = Id; }
 };
-
-UCLASS(ClassGroup=(ASHLINE), meta=(BlueprintSpawnableComponent))
-class ASHLINECHARACTERS_API UALCombatComponent : public UActorComponent
-{
-    GENERATED_BODY()
-public:
-    UFUNCTION(BlueprintCallable, Category="Combat") bool FireCurrentWeapon();
-    UFUNCTION(BlueprintCallable, Category="Combat") void ReloadCurrentWeapon();
-    UPROPERTY(BlueprintReadOnly, Category="Combat") TObjectPtr<class AALWeaponBase> CurrentWeapon;
-    UFUNCTION(BlueprintCallable, Category="Combat") void SetCurrentWeapon(AALWeaponBase* Weapon) { CurrentWeapon = Weapon; }
-};

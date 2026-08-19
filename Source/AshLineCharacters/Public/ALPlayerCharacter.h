@@ -5,6 +5,8 @@
 #include "ALPlayerCharacter.generated.h"
 
 struct FInputActionValue;
+class AALWeaponBase;
+class UALWeaponDataAsset;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FALPlayerDeathFlowEvent);
 
 UCLASS(Blueprintable)
@@ -40,6 +42,8 @@ public:
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void StopAim();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void ReloadWeapon();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void SwitchWeapon();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void SpawnDefaultLoadout();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Weapon") void EquipDevelopmentSMG();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Control") void SetMovementLocked(bool bLocked);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Control") void SetLookLocked(bool bLocked);
 
@@ -54,14 +58,23 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera") TObjectPtr<class UCameraComponent> FirstPersonCamera;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement") TObjectPtr<class UALPlayerMovementSettings> MovementSettings;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALHealthComponent> HealthComponent;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALCombatComponent> CombatComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALInventoryComponent> InventoryComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALEquipmentComponent> EquipmentComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALInteractionComponent> InteractionComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALPlayerStateComponent> PlayerStateComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components") TObjectPtr<class UALWeaponComponent> WeaponComponent;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout") TSubclassOf<AALWeaponBase> PrimaryWeaponClass;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout") TObjectPtr<UALWeaponDataAsset> PrimaryWeaponData;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout") TSubclassOf<AALWeaponBase> SidearmWeaponClass;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout") TObjectPtr<UALWeaponDataAsset> SidearmWeaponData;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout|Development") TSubclassOf<AALWeaponBase> DevelopmentSMGClass;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ASH LINE|Loadout|Development") TObjectPtr<UALWeaponDataAsset> DevelopmentSMGData;
+    UPROPERTY(BlueprintReadOnly, Category="ASH LINE|Loadout") TObjectPtr<AALWeaponBase> PrimaryWeaponInstance;
+    UPROPERTY(BlueprintReadOnly, Category="ASH LINE|Loadout") TObjectPtr<AALWeaponBase> SidearmWeaponInstance;
+
 protected:
+    AALWeaponBase* SpawnLoadoutWeapon(TSubclassOf<AALWeaponBase> WeaponClass, UALWeaponDataAsset* WeaponData, bool bPrimarySlot);
     UFUNCTION() void HandleHealthDeath();
     void HandleFallDamage();
     void SetAimFOV(bool bAiming);

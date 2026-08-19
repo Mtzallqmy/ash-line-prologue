@@ -46,7 +46,7 @@ missing_modules = expected_modules - module_names
 if missing_modules:
     errors.append("Missing project modules: " + ", ".join(sorted(missing_modules)))
 
-real_plugins = {"EnhancedInput"}
+real_plugins = {"EnhancedInput", "PythonScriptPlugin", "EditorScriptingUtilities"}
 for plugin in project.get("Plugins", []):
     if plugin.get("Enabled") and plugin.get("Name") not in real_plugins:
         errors.append(f"Unknown or non-plugin entry in .uproject Plugins: {plugin.get('Name')}")
@@ -139,6 +139,7 @@ required_scripts = [
     "Scripts/Build/ValidateBeforeBuild.ps1",
     "Scripts/Build/BuildAndroidDevelopment.ps1",
     "Scripts/Build/BuildAndroidShipping.ps1",
+    "Scripts/Build/BuildEditor.ps1",
     "Scripts/Build/BuildAndroidPrototype.ps1",
     "Scripts/Build/BuildAndroidPrototype.sh",
     "Scripts/Editor/CreatePrototypeAssets.py",

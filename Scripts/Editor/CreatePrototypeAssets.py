@@ -220,7 +220,19 @@ def create_input_assets():
     return actions, context
 
 
-def create_blueprints():
+def create_blueprints(weapon_assets, input_actions, mapping_context, archetypes):
+    weapon_blueprints = {}
+    for asset_name, weapon_id in (("BP_WPN_AR_001", "WPN_AR_001"), ("BP_WPN_SMG_001", "WPN_SMG_001"), ("BP_WPN_PST_001", "WPN_PST_001")):
+        weapon_bp = create_blueprint("/Script/AshLineWeapons.AALWeaponBase", "/Game/AshLine/Weapons", asset_name)
+        weapon_blueprints[weapon_id] = weapon_bp
+        if weapon_bp and weapon_assets.get(weapon_id):
+            try:
+                weapon_bp.generated_class().get_default_object().set_editor_property("Data", weapon_assets[weapon_id])
+                unreal.EditorAssetLibrary.save_loaded_asset(weapon_bp)
+            except Exception as exc:
+                unreal.log_warning(f"Could not assign weapon data to {asset_name}: {exc}")
+
+    player_controller_bp = create_blueprint("/Script/AshLineCharacters.AALPlayerController", "/Game/AshLine/Characters/Player", "BP_ALPlayerController")
     player_bp = create_blueprint("/Script/AshLineCharacters.AALPlayerCharacter", "/Game/AshLine/Characters/Player", "BP_ALPlayerCharacter")
     enemy_bp = create_blueprint("/Script/AshLineAI.AALInfantryCharacter", "/Game/AshLine/AI", "BP_ALInfantry_Test")
     game_mode_bp = create_blueprint("/Script/AshLineMissions.AALCombatPrototypeGameMode", "/Game/AshLine/Core", "BP_ALCombatPrototypeGameMode")
@@ -230,6 +242,51 @@ def create_blueprints():
     mobile_hud = create_widget_blueprint(UI_ROOT, "WBP_MobileTouchLayer")
     combat_hud = create_widget_blueprint(UI_ROOT, "WBP_CombatPrototypeHUD")
     hud_bp = create_blueprint("/Script/AshLineUI.AALCombatPrototypeHUD", UI_ROOT, "BP_ALCombatPrototypeHUD")
+
+    if player_controller_bp:
+        controller_defaults = player_controller_bp.generated_class().get_default_object()
+        controller_bindings = {
+            "PlayerMappingContext": mapping_context,
+            "MoveAction": input_actions.get("IA_Move"),
+            "LookAction": input_actions.get("IA_Look"),
+            "JumpAction": input_actions.get("IA_Jump"),
+            "CrouchAction": input_actions.get("IA_Crouch"),
+            "SprintAction": input_actions.get("IA_Sprint"),
+            "InteractAction": input_actions.get("IA_Interact"),
+            "PauseAction": input_actions.get("IA_Pause"),
+            "FireAction": input_actions.get("IA_Fire"),
+            "AimAction": input_actions.get("IA_Aim"),
+            "ReloadAction": input_actions.get("IA_Reload"),
+            "NextWeaponAction": input_actions.get("IA_SwitchWeapon") or input_actions.get("IA_NextWeapon"),
+        }
+        for property_name, value in controller_bindings.items():
+            if value:
+                set_if_present(controller_defaults, property_name, value)
+        unreal.EditorAssetLibrary.save_loaded_asset(player_controller_bp)
+
+    if player_bp:
+        player_defaults = player_bp.generated_class().get_default_object()
+        loadout_bindings = {
+            "PrimaryWeaponClass": weapon_blueprints.get("WPN_AR_001").generated_class() if weapon_blueprints.get("WPN_AR_001") else None,
+            "PrimaryWeaponData": weapon_assets.get("WPN_AR_001"),
+            "SidearmWeaponClass": weapon_blueprints.get("WPN_PST_001").generated_class() if weapon_blueprints.get("WPN_PST_001") else None,
+            "SidearmWeaponData": weapon_assets.get("WPN_PST_001"),
+            "DevelopmentSMGClass": weapon_blueprints.get("WPN_SMG_001").generated_class() if weapon_blueprints.get("WPN_SMG_001") else None,
+            "DevelopmentSMGData": weapon_assets.get("WPN_SMG_001"),
+        }
+        for property_name, value in loadout_bindings.items():
+            if value:
+                set_if_present(player_defaults, property_name, value)
+        unreal.EditorAssetLibrary.save_loaded_asset(player_bp)
+
+    if enemy_bp:
+        enemy_defaults = enemy_bp.generated_class().get_default_object()
+        if weapon_blueprints.get("WPN_AR_001"):
+            set_if_present(enemy_defaults, "WeaponClass", weapon_blueprints["WPN_AR_001"].generated_class())
+        if archetypes.get("AI_Soldier_Basic"):
+            set_if_present(enemy_defaults, "Archetype", archetypes["AI_Soldier_Basic"])
+        unreal.EditorAssetLibrary.save_loaded_asset(enemy_bp)
+
     if hud_bp and combat_hud:
         try:
             hud_bp.generated_class().get_default_object().set_editor_property("CombatWidgetClass", combat_hud.generated_class())
@@ -241,13 +298,15 @@ def create_blueprints():
             game_mode_defaults = game_mode_bp.generated_class().get_default_object()
             if player_bp:
                 game_mode_defaults.set_editor_property("DefaultPawnClass", player_bp.generated_class())
+            if player_controller_bp:
+                game_mode_defaults.set_editor_property("PlayerControllerClass", player_controller_bp.generated_class())
             if hud_bp:
                 game_mode_defaults.set_editor_property("HUDClass", hud_bp.generated_class())
             game_mode_defaults.set_editor_property("RequiredEnemyCount", 6)
             unreal.EditorAssetLibrary.save_loaded_asset(game_mode_bp)
         except Exception as exc:
             unreal.log_warning(f"Could not assign Combat Prototype GameMode defaults: {exc}")
-    return player_bp, enemy_bp, game_mode_bp, cover_bp, patrol_bp, main_menu, mobile_hud, combat_hud, hud_bp
+    return player_bp, player_controller_bp, enemy_bp, game_mode_bp, cover_bp, patrol_bp, main_menu, mobile_hud, combat_hud, hud_bp, weapon_blueprints
 
 
 def spawn_static_mesh(location, scale, mesh_path="/Engine/BasicShapes/Cube.Cube"):
@@ -329,13 +388,28 @@ def validate_assets():
         f"{INPUT_ROOT}/IMC_Player",
         f"{INPUT_ROOT}/IA_Move",
         f"{INPUT_ROOT}/IA_Look",
+        f"{INPUT_ROOT}/IA_Jump",
+        f"{INPUT_ROOT}/IA_Crouch",
+        f"{INPUT_ROOT}/IA_Sprint",
+        f"{INPUT_ROOT}/IA_Interact",
+        f"{INPUT_ROOT}/IA_Fire",
+        f"{INPUT_ROOT}/IA_Aim",
+        f"{INPUT_ROOT}/IA_Reload",
+        f"{INPUT_ROOT}/IA_SwitchWeapon",
+        f"{INPUT_ROOT}/IA_NextWeapon",
+        f"{INPUT_ROOT}/IA_Pause",
         f"{WEAPON_ROOT}/DA_WPN_AR_001",
         f"{WEAPON_ROOT}/DA_WPN_SMG_001",
         f"{WEAPON_ROOT}/DA_WPN_PST_001",
         f"{AI_ROOT}/DA_AI_Soldier_Basic",
         f"{AI_ROOT}/DA_AI_Soldier_Trained",
         "/Game/AshLine/Characters/Player/BP_ALPlayerCharacter",
+        "/Game/AshLine/Characters/Player/BP_ALPlayerController",
         "/Game/AshLine/AI/BP_ALInfantry_Test",
+        "/Game/AshLine/Core/BP_ALCombatPrototypeGameMode",
+        "/Game/AshLine/Weapons/BP_WPN_AR_001",
+        "/Game/AshLine/Weapons/BP_WPN_SMG_001",
+        "/Game/AshLine/Weapons/BP_WPN_PST_001",
         f"{UI_ROOT}/BP_ALCombatPrototypeHUD",
         f"{UI_ROOT}/WBP_MainMenu",
         f"{UI_ROOT}/WBP_MobileTouchLayer",
@@ -351,8 +425,8 @@ def main():
     health = create_health_asset()
     weapons = create_weapon_assets()
     archetypes = create_ai_assets(health, weapons)
-    create_input_assets()
-    player_bp, enemy_bp, game_mode_bp, cover_bp, patrol_bp, main_menu, mobile_hud, combat_hud, hud_bp = create_blueprints()
+    input_actions, mapping_context = create_input_assets()
+    player_bp, player_controller_bp, enemy_bp, game_mode_bp, cover_bp, patrol_bp, main_menu, mobile_hud, combat_hud, hud_bp, weapon_blueprints = create_blueprints(weapons, input_actions, mapping_context, archetypes)
     build_arena(player_bp, enemy_bp, cover_bp, patrol_bp, archetypes, weapons)
     validate_assets()
 
