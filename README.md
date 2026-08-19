@@ -201,3 +201,9 @@ python3 Scripts/Validation/size_report.py .
 الحزمة المحلية تستخدم تنسيق `.alpack` يحتوي `manifest.json` و`content/` و`optional_metadata/` و`signature.dat` عند التوقيع. أداة البناء هي `Scripts/Content/BuildALPack.py`، ويوجد Fixture صغير باسم `Releases/Content/Development/AshLine_TestContent_v1.alpack`. الحزم Content-only ولا تسمح بـ Native Libraries أو Executables أو Scripts تنفيذية.
 
 تم توثيق التدفق الكامل في [ContentSystem.md](Docs/ContentSystem.md)، والتقرير في [ModularContentSystemReport.md](Docs/ModularContentSystemReport.md). Android File Picker وPak/IoStore وCDN وGoogle Play Asset Delivery الفعلية ما زالت تحتاج Unreal/Android Toolchain قبل إعلان Runtime Release.
+
+## Android v0.0.1 Release Preparation
+
+تم تجهيز إعدادات Android للإصدار `ASH LINE — Combat Prototype v0.0.1`: Package ID هو `com.ashline.game`، وMin SDK هو 26، وABI المستهدف هو `arm64-v8a` فقط، مع Landscape وOpenGL ES compatibility path وVersion Code 1. تم إنشاء `Scripts/Build/BuildAndroidRelease.sh` و`Scripts/Validation/verify_android_release.py` وRelease Report داخل `Releases/Android/0.0.1/Reports/`.
+
+تمت محاولة تشغيل Build Gate، لكنه توقف برسالة واضحة لأن Unreal Engine 5.4 غير مثبت أو غير محدد عبر `UE_ROOT`، كما أن Android SDK/NDK غير متاحين. لذلك لا يوجد APK وهمي أو غير قابل للتحقق؛ يجب تشغيل سكربت البناء على جهاز يحتوي Unreal وAndroid Toolchain فعليين.
