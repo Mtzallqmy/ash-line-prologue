@@ -38,7 +38,9 @@ for token in ['UALDamageReceiver', 'CanReceiveALDamage', 'ReceiveALDamage']:
     if token not in damage_receiver: errors.append(f'damage receiver interface missing {token}')
 for token in ['PrimaryComponentTick.bCanEverTick = false', 'bIsDead', 'OnDeath.Broadcast']:
     if token not in health_cpp: errors.append(f'health performance/death guarantee missing {token}')
-for token in ['OnDeath.AddDynamic', 'HandleHealthDeath', 'RequestRestartFromCheckpoint', 'HandleFallDamage', 'EALDamageType::Fall']:
+if not ('OnDeath.AddDynamic' in player_cpp or 'OnDeath.AddUniqueDynamic' in player_cpp):
+    errors.append('player death/fall integration missing one-time OnDeath binding')
+for token in ['HandleHealthDeath', 'RequestRestartFromCheckpoint', 'HandleFallDamage', 'EALDamageType::Fall']:
     if token not in player_cpp: errors.append(f'player death/fall integration missing {token}')
 for token in ['Components/ALHealthComponent.h', 'OnDeath.AddDynamic', 'DisableMovement']:
     if token not in infantry_cpp: errors.append(f'infantry death integration missing {token}')
