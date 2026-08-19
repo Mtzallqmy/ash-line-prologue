@@ -1,0 +1,44 @@
+{
+  "mappingContext": {
+    "id": "IMC_Player",
+    "priority": 0,
+    "implementedActions": [
+      "IA_Move",
+      "IA_Look",
+      "IA_Jump",
+      "IA_Crouch",
+      "IA_Sprint",
+      "IA_Interact",
+      "IA_Pause"
+    ],
+    "reservedActions": [
+      "IA_Fire",
+      "IA_Aim",
+      "IA_Reload",
+      "IA_Drone"
+    ]
+  },
+  "actions": [
+    {"id":"IA_Move","valueType":"Axis2D","pc":"WASD","android":"Left Virtual Stick","gamepad":"Left Analog Stick"},
+    {"id":"IA_Look","valueType":"Axis2D","pc":"Mouse X/Y","android":"Right Look Area","gamepad":"Right Analog Stick"},
+    {"id":"IA_Jump","valueType":"Boolean","pc":"Space","android":"Jump Button","gamepad":"Face Button Bottom"},
+    {"id":"IA_Crouch","valueType":"Boolean","pc":"C/Ctrl","android":"Crouch Button","gamepad":"Face Button Right"},
+    {"id":"IA_Sprint","valueType":"Boolean","pc":"Left Shift","android":"Sprint Button","gamepad":"Left Stick Press"},
+    {"id":"IA_Interact","valueType":"Boolean","pc":"E","android":"Interact Button","gamepad":"Face Button Left"},
+    {"id":"IA_Pause","valueType":"Boolean","pc":"Escape","android":"Pause Button","gamepad":"Menu"},
+    {"id":"IA_Fire","valueType":"Boolean","status":"reserved"},
+    {"id":"IA_Aim","valueType":"Boolean","status":"reserved"},
+    {"id":"IA_Reload","valueType":"Boolean","status":"reserved"},
+    {"id":"IA_Drone","valueType":"Boolean","status":"reserved"}
+  ],
+  "touchLayer": {
+    "orientation": "Landscape",
+    "left": "Movement stick",
+    "right": "Camera drag region",
+    "buttons": ["Jump", "Crouch", "Sprint", "Interact", "Pause"],
+    "safeZoneAware": true,
+    "dpiScaleAware": true,
+    "notchAware": true,
+    "multiTouch": true
+  }
+}

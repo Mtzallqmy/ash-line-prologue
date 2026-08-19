@@ -1,43 +1,215 @@
 #include "ALPlayerCharacter.h"
 #include "ALHealthComponent.h"
 #include "ALCharacterComponents.h"
+#include "ALInteractionComponent.h"
+#include "ALPlayerMovementSettings.h"
+#include "ALPlayerStateComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/InputComponent.h"
+#include "InputActionValue.h"
+#include "GameFramework/Controller.h"
+
+namespace ALPlayerDefaults
+{
+    constexpr float WalkSpeed = 320.0f;
+    constexpr float SprintSpeed = 520.0f;
+    constexpr float CrouchSpeed = 180.0f;
+    constexpr float JumpVelocity = 420.0f;
+    constexpr float MinPitch = -85.0f;
+    constexpr float MaxPitch = 85.0f;
+}
 
 AALPlayerCharacter::AALPlayerCharacter()
 {
+    CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+    CameraRoot->SetupAttachment(GetCapsuleComponent());
+    FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+    FirstPersonCamera->SetupAttachment(CameraRoot);
+    FirstPersonCamera->bUsePawnControlRotation = true;
+
     HealthComponent = CreateDefaultSubobject<UALHealthComponent>(TEXT("HealthComponent"));
     CombatComponent = CreateDefaultSubobject<UALCombatComponent>(TEXT("CombatComponent"));
     InventoryComponent = CreateDefaultSubobject<UALInventoryComponent>(TEXT("InventoryComponent"));
     EquipmentComponent = CreateDefaultSubobject<UALEquipmentComponent>(TEXT("EquipmentComponent"));
     InteractionComponent = CreateDefaultSubobject<UALInteractionComponent>(TEXT("InteractionComponent"));
     PlayerStateComponent = CreateDefaultSubobject<UALPlayerStateComponent>(TEXT("PlayerStateComponent"));
-    GetCharacterMovement()->MaxWalkSpeed = 420.0f;
-    GetCharacterMovement()->MaxWalkSpeedCrouched = 180.0f;
+
+    bUseControllerRotationYaw = true;
+    GetCharacterMovement()->bOrientRotationToMovement = false;
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
-void AALPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AALPlayerCharacter::BeginPlay()
 {
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
-    PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AALPlayerCharacter::MoveForward);
-    PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AALPlayerCharacter::MoveRight);
-    PlayerInputComponent->BindAxis(TEXT("LookYaw"), this, &AALPlayerCharacter::LookYaw);
-    PlayerInputComponent->BindAxis(TEXT("LookPitch"), this, &AALPlayerCharacter::LookPitch);
-    PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AALPlayerCharacter::StartSprint);
-    PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AALPlayerCharacter::StopSprint);
-    PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &AALPlayerCharacter::ToggleCrouch);
-    PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AALPlayerCharacter::Interact);
-    PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &AALPlayerCharacter::Fire);
-    PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &AALPlayerCharacter::Reload);
+    Super::BeginPlay();
+    if (MovementSettings)
+    {
+        GetCharacterMovement()->JumpZVelocity = MovementSettings->JumpVelocity;
+        GetCharacterMovement()->MaxWalkSpeedCrouched = MovementSettings->CrouchSpeed;
+        InteractionComponent->InteractionRange = MovementSettings->InteractionDistance;
+        CurrentPitch = FMath::Clamp(GetControlRotation().Pitch, MovementSettings->MinPitch, MovementSettings->MaxPitch);
+    }
+    else
+    {
+        GetCharacterMovement()->JumpZVelocity = ALPlayerDefaults::JumpVelocity;
+        GetCharacterMovement()->MaxWalkSpeedCrouched = ALPlayerDefaults::CrouchSpeed;
+        CurrentPitch = FMath::Clamp(GetControlRotation().Pitch, ALPlayerDefaults::MinPitch, ALPlayerDefaults::MaxPitch);
+    }
+    RefreshMovementSpeed();
+    RefreshMovementState();
 }
 
-void AALPlayerCharacter::MoveForward(float Value) { if (FMath::Abs(Value) > KINDA_SMALL_NUMBER) AddMovementInput(GetActorForwardVector(), Value); }
-void AALPlayerCharacter::MoveRight(float Value) { if (FMath::Abs(Value) > KINDA_SMALL_NUMBER) AddMovementInput(GetActorRightVector(), Value); }
-void AALPlayerCharacter::LookYaw(float Value) { AddControllerYawInput(Value); }
-void AALPlayerCharacter::LookPitch(float Value) { AddControllerPitchInput(Value); }
-void AALPlayerCharacter::StartSprint() { GetCharacterMovement()->MaxWalkSpeed = 620.0f; }
-void AALPlayerCharacter::StopSprint() { GetCharacterMovement()->MaxWalkSpeed = 420.0f; }
-void AALPlayerCharacter::ToggleCrouch() { if (bIsCrouched) UnCrouch(); else Crouch(); }
-void AALPlayerCharacter::Interact() { if (InteractionComponent) InteractionComponent->FindInteractable(); }
-void AALPlayerCharacter::Fire() { if (CombatComponent) CombatComponent->FireCurrentWeapon(); }
-void AALPlayerCharacter::Reload() { if (CombatComponent) CombatComponent->ReloadCurrentWeapon(); }
+bool AALPlayerCharacter::HasMovementSettings() const
+{
+    return IsValid(MovementSettings);
+}
+
+void AALPlayerCharacter::Move(const FInputActionValue& Value)
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) return;
+    FVector2D Input = Value.Get<FVector2D>().GetClampedToMaxSize(1.0f);
+    if (Input.IsNearlyZero()) return;
+
+    const FRotator ControlRotation = Controller ? Controller->GetControlRotation() : GetActorRotation();
+    const FRotator YawRotation(0.0f, ControlRotation.Yaw, 0.0f);
+    const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+    const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+    AddMovementInput(Forward, Input.Y);
+    AddMovementInput(Right, Input.X);
+}
+
+void AALPlayerCharacter::Look(const FInputActionValue& Value)
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanLook()) return;
+    const FVector2D Input = Value.Get<FVector2D>();
+    const FALPlayerInputSettings InputSettings = MovementSettings ? MovementSettings->Input : FALPlayerInputSettings();
+    const float YawDelta = Input.X * InputSettings.HorizontalSensitivity;
+    const float PitchSign = InputSettings.bInvertY ? 1.0f : -1.0f;
+    const float PitchDelta = Input.Y * InputSettings.VerticalSensitivity * PitchSign;
+    const float MinPitch = MovementSettings ? MovementSettings->MinPitch : ALPlayerDefaults::MinPitch;
+    const float MaxPitch = MovementSettings ? MovementSettings->MaxPitch : ALPlayerDefaults::MaxPitch;
+
+    if (Controller)
+    {
+        FRotator Rotation = Controller->GetControlRotation();
+        CurrentPitch = FMath::Clamp(CurrentPitch + PitchDelta, MinPitch, MaxPitch);
+        Rotation.Pitch = CurrentPitch;
+        Rotation.Yaw += YawDelta;
+        Controller->SetControlRotation(Rotation);
+    }
+}
+
+void AALPlayerCharacter::StartJump()
+{
+    if (PlayerStateComponent && PlayerStateComponent->CanMove() && CanJump()) Jump();
+}
+
+void AALPlayerCharacter::StopJump()
+{
+    StopJumping();
+}
+
+void AALPlayerCharacter::StartSprint()
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanMove() || bIsCrouched || IsAirborne()) return;
+    bSprintIntent = true;
+    bSprintActive = true;
+    RefreshMovementState();
+    RefreshMovementSpeed();
+}
+
+void AALPlayerCharacter::StopSprint()
+{
+    bSprintIntent = false;
+    bSprintActive = false;
+    RefreshMovementState();
+    RefreshMovementSpeed();
+}
+
+void AALPlayerCharacter::ToggleCrouch()
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) return;
+    if (bIsCrouched)
+    {
+        UnCrouch();
+    }
+    else
+    {
+        StopSprint();
+        Crouch();
+    }
+    RefreshMovementState();
+    RefreshMovementSpeed();
+}
+
+void AALPlayerCharacter::Interact()
+{
+    if (PlayerStateComponent && PlayerStateComponent->CanInteract() && InteractionComponent)
+    {
+        InteractionComponent->TryInteract();
+    }
+}
+
+void AALPlayerCharacter::SetMovementLocked(bool bLocked)
+{
+    if (PlayerStateComponent) PlayerStateComponent->SetMovementEnabled(!bLocked);
+    if (bLocked)
+    {
+        StopSprint();
+        GetCharacterMovement()->StopMovementImmediately();
+    }
+    RefreshMovementState();
+}
+
+void AALPlayerCharacter::SetLookLocked(bool bLocked)
+{
+    if (PlayerStateComponent) PlayerStateComponent->SetLookEnabled(!bLocked);
+}
+
+bool AALPlayerCharacter::CanJumpInternal_Implementation() const
+{
+    return PlayerStateComponent && PlayerStateComponent->CanMove() && MovementState != EALMovementState::Locked && Super::CanJumpInternal_Implementation();
+}
+
+void AALPlayerCharacter::Landed(const FHitResult& Hit)
+{
+    Super::Landed(Hit);
+    RefreshMovementState();
+}
+
+void AALPlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+    Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+    RefreshMovementState();
+}
+
+void AALPlayerCharacter::RefreshMovementState()
+{
+    if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) MovementState = EALMovementState::Locked;
+    else if (GetCharacterMovement()->IsFalling()) MovementState = EALMovementState::Airborne;
+    else if (bIsCrouched) MovementState = EALMovementState::Crouching;
+    else if (bSprintActive) MovementState = EALMovementState::Sprinting;
+    else MovementState = EALMovementState::Walking;
+}
+
+void AALPlayerCharacter::RefreshMovementSpeed()
+{
+    const float WalkSpeed = MovementSettings ? MovementSettings->WalkSpeed : ALPlayerDefaults::WalkSpeed;
+    const float SprintSpeed = MovementSettings ? MovementSettings->SprintSpeed : ALPlayerDefaults::SprintSpeed;
+    const float CrouchSpeed = MovementSettings ? MovementSettings->CrouchSpeed : ALPlayerDefaults::CrouchSpeed;
+    GetCharacterMovement()->MaxWalkSpeed = bIsCrouched ? CrouchSpeed : (bSprintActive ? SprintSpeed : WalkSpeed);
+    GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+}
+
+float AALPlayerCharacter::GetCurrentSpeed() const
+{
+    return GetVelocity().Size2D();
+}
+
+float AALPlayerCharacter::GetMovementDirection() const
+{
+    const FVector HorizontalVelocity = FVector(GetVelocity().X, GetVelocity().Y, 0.0f);
+    if (HorizontalVelocity.IsNearlyZero()) return 0.0f;
+    return FMath::RadiansToDegrees(FMath::Atan2(HorizontalVelocity | GetActorRightVector(), HorizontalVelocity | GetActorForwardVector()));
+}

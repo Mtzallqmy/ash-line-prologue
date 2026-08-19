@@ -163,3 +163,11 @@ python3 Scripts/Validation/size_report.py .
 ## الأمان
 
 لا تضع Tokens أو مفاتيح API أو بيانات اعتماد داخل المستودع أو ملفات Gameplay أو README. إذا ظهر Token في محادثة أو سجل أو ملف بالخطأ، يجب إلغاؤه فورًا من مزود الخدمة وإنشاء Token بديل بصلاحيات أقل ما يمكن.
+
+## Prompt 02 — Player and Movement
+
+تمت إضافة بنية اللاعب الإنتاجية في `AshLineCharacters` عبر `AALPlayerCharacter` و`AALPlayerController` و`UALPlayerStateComponent` و`UALInteractionComponent` و`IALInteractable`. يستخدم اللاعب `UCharacterMovementComponent` وEnhanced Input، مع First-Person camera hierarchy، حالات حركة واضحة، سرعات Data-Driven، Sprint Hold/Toggle، Crouch، Jump، Pitch Clamp، Input Locks، وتفاعل عام قابل للتوسع.
+
+تم توثيق إعداد `IMC_Player` وInput Actions و`BP_ALPlayerCharacter` و`DA_PlayerMovement` و`WBP_MobileTouchLayer` داخل مجلدات `Content/AshLine/Input/` و`Content/AshLine/Characters/Player/` و`Content/AshLine/UI/Mobile/`. الأفعال الخاصة بالأسلحة والـ Aim والـ Reload والـ Drone محجوزة للمراحل التالية ولا تُنفذ في Prompt 02.
+
+للتفاصيل الكاملة راجع [تقرير Prompt 02](Docs/Prompt02ImplementationReport.md).
