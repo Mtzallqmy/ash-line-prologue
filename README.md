@@ -207,3 +207,32 @@ python3 Scripts/Validation/size_report.py .
 تم تجهيز إعدادات Android للإصدار `ASH LINE — Combat Prototype v0.0.1`: Package ID هو `com.ashline.game`، وMin SDK هو 26، وABI المستهدف هو `arm64-v8a` فقط، مع Landscape وOpenGL ES compatibility path وVersion Code 1. تم إنشاء `Scripts/Build/BuildAndroidRelease.sh` و`Scripts/Validation/verify_android_release.py` وRelease Report داخل `Releases/Android/0.0.1/Reports/`.
 
 تمت محاولة تشغيل Build Gate، لكنه توقف برسالة واضحة لأن Unreal Engine 5.4 غير مثبت أو غير محدد عبر `UE_ROOT`، كما أن Android SDK/NDK غير متاحين. لذلك لا يوجد APK وهمي أو غير قابل للتحقق؛ يجب تشغيل سكربت البناء على جهاز يحتوي Unreal وAndroid Toolchain فعليين.
+
+## Corrective Fix — Stable Playable Foundation
+
+تم تنفيذ تصحيح استقرار شامل على الفرع `fix/playable-v0.0.1` دون إعادة إنشاء المشروع أو حذف Architecture الحالية. أزيلت إدخالات Engine Modules الخاطئة من `ASH_LINE.uproject`، وثُبّت Death Flow بحيث يقرر GameMode نقطة إعادة اللاعب قبل Reset Health وفتح التحكم، وتم جعل Weapon hot path يعتمد على Cached FireSound وMuzzleFX بدل التحميل المتكرر أثناء إطلاق النار.
+
+تم جعل `StartCombat` في AI idempotent، ومنع تكرار Perception delegate binding، وإضافة Semantic Version parser ومقارنة رقمية، وحساب SHA-256 فعلي لمجلدات Development package، وتعطيل external unsigned packages في Shipping. أصبح Directory mount معلنًا بوضوح كـDevelopment backend، وأضيفت بوابة مستقبلية لـPak وIoStore عبر `IALPackageMountBackend`.
+
+أضيفت أدوات البناء التالية:
+
+```text
+Scripts/Build/ValidateBeforeBuild.sh
+Scripts/Build/BuildEditor.sh
+Scripts/Build/BuildDevelopment.sh
+Scripts/Build/BuildAndroidDevelopment.sh
+Scripts/Build/BuildAndroidShipping.sh
+Scripts/Build/ValidateBeforeBuild.ps1
+Scripts/Build/BuildAndroidDevelopment.ps1
+Scripts/Build/BuildAndroidShipping.ps1
+Scripts/Editor/CreatePrototypeAssets.py
+Scripts/Validation/validate_build_references.py
+```
+
+تشغّل الفحوصات السابقة عبر:
+
+```bash
+Scripts/Build/ValidateBeforeBuild.sh
+```
+
+وتنجح فحوصات Python وBash و`git diff --check`. أما Unreal Editor Compile وAutomation tests وCook/Package فلم تُنفذ لأن Unreal Engine 5.4 وAndroid SDK/NDK غير متاحة في بيئة التنفيذ. لذلك تبقى حالة المشروع **Ready for Combat Demo: NO** إلى أن يتم Compile وCook وفتح الخريطة وتشغيل Runtime smoke test على جهاز بناء فعلي. التفاصيل في [CorrectiveReport.md](Docs/Build/CorrectiveReport.md) و[PreFixAudit.md](Docs/Build/PreFixAudit.md).
