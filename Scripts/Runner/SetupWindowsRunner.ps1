@@ -69,7 +69,13 @@ $AndroidHome = Resolve-RequiredPath $AndroidHome 'ANDROID_HOME'
 $AndroidNdkHome = Resolve-RequiredPath $AndroidNdkHome 'ANDROID_NDK_HOME'
 $JavaHome = Resolve-RequiredPath $JavaHome 'JAVA_HOME'
 
-Assert-File (Join-Path $UnrealRoot 'Engine\Binaries\DotNET\UnrealBuildTool.exe') 'UnrealBuildTool.exe'
+$ubtCandidates = @(
+    (Join-Path $UnrealRoot 'Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe'),
+    (Join-Path $UnrealRoot 'Engine\Binaries\DotNET\UnrealBuildTool.exe')
+)
+if (-not ($ubtCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })) {
+    Fail "لم يتم العثور على UnrealBuildTool.exe داخل UE_ROOT: $UnrealRoot"
+}
 Assert-File (Join-Path $UnrealRoot 'Engine\Build\BatchFiles\RunUAT.bat') 'RunUAT.bat'
 Assert-File (Join-Path $UnrealRoot 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe') 'UnrealEditor-Cmd.exe'
 Assert-File (Join-Path $AndroidHome 'platform-tools\adb.exe') 'adb.exe'
