@@ -1,0 +1,43 @@
+{
+  "chunks": [
+    {
+      "id": 0,
+      "package": "core",
+      "roots": [
+        "/Game/AshLine/Core",
+        "/Game/AshLine/UI",
+        "/Game/AshLine/Data"
+      ]
+    },
+    {
+      "id": 1,
+      "package": "city_namar_prologue",
+      "roots": [
+        "/Game/AshLine/Maps/Namar",
+        "/Game/AshLine/Missions"
+      ]
+    },
+    {
+      "id": 2,
+      "package": "weapons_pack_01",
+      "roots": [
+        "/Game/AshLine/Weapons",
+        "/Game/AshLine/Characters"
+      ]
+    },
+    {
+      "id": 3,
+      "package": "audio_core",
+      "roots": [
+        "/Game/AshLine/Audio/Audio_Core"
+      ]
+    },
+    {
+      "id": 4,
+      "package": "localization_core",
+      "roots": [
+        "/Game/AshLine/Localization/Localization_Core"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "gameVersion": "0.1.0",
+  "contentVersion": 1,
+  "packages": [
+    {
+      "id": "core",
+      "version": 1,
+      "downloadSizeBytes": 0,
+      "installedSizeBytes": 0,
+      "hash": "",
+      "dependencies": [],
+      "required": true,
+      "url": "",
+      "assetDeliveryIdentifier": "core"
+    },
+    {
+      "id": "city_namar_prologue",
+      "version": 1,
+      "downloadSizeBytes": 0,
+      "installedSizeBytes": 0,
+      "hash": "",
+      "dependencies": [
+        "core"
+      ],
+      "required": true,
+      "url": "",
+      "assetDeliveryIdentifier": "city_namar_prologue"
+    },
+    {
+      "id": "weapons_pack_01",
+      "version": 1,
+      "downloadSizeBytes": 0,
+      "installedSizeBytes": 0,
+      "hash": "",
+      "dependencies": [
+        "core"
+      ],
+      "required": true,
+      "url": "",
+      "assetDeliveryIdentifier": "weapons_pack_01"
+    },
+    {
+      "id": "audio_core",
+      "version": 1,
+      "downloadSizeBytes": 0,
+      "installedSizeBytes": 0,
+      "hash": "",
+      "dependencies": [
+        "core"
+      ],
+      "required": true,
+      "url": "",
+      "assetDeliveryIdentifier": "audio_core"
+    },
+    {
+      "id": "localization_core",
+      "version": 1,
+      "downloadSizeBytes": 0,
+      "installedSizeBytes": 0,
+      "hash": "",
+      "dependencies": [
+        "core"
+      ],
+      "required": true,
+      "url": "",
+      "assetDeliveryIdentifier": "localization_core"
+    }
+  ]
+}
