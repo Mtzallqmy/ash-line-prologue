@@ -73,4 +73,28 @@ fi
 cp -f "$APK_SOURCE" "$APK_TARGET"
 python3 "$PROJECT_ROOT/Scripts/Validation/verify_android_release.py" "$APK_TARGET" "$RELEASE_ROOT/Reports/release_$CONFIGURATION.json"
 sha256sum "$APK_TARGET" > "$RELEASE_ROOT/Checksums/$(basename "$APK_TARGET").sha256"
+sha256sum "$APK_TARGET" > "$RELEASE_ROOT/Checksums/SHA256.txt"
+APK_BYTES="$(stat -c '%s' "$APK_TARGET")"
+cat > "$RELEASE_ROOT/Reports/ReleaseReport.md" <<EOF
+# ASH LINE Combat Prototype v0.0.1 — Release Report
+
+Configuration: $CONFIGURATION
+APK: $(basename "$APK_TARGET")
+APK path: $APK_TARGET
+APK size bytes: $APK_BYTES
+SHA-256: $(cut -d' ' -f1 "$RELEASE_ROOT/Checksums/SHA256.txt")
+ABI: arm64-v8a
+Package: com.ashline.game
+Version: 0.0.1 (1)
+
+This report was generated after Unreal BuildCookRun produced and verification accepted the APK.
+EOF
+cat > "$RELEASE_ROOT/Reports/SizeReport.md" <<EOF
+# ASH LINE Combat Prototype v0.0.1 — Size Report
+
+APK: $(basename "$APK_TARGET")
+Bytes: $APK_BYTES
+Target: <= 500 MB
+Preferred prototype target: <= 300 MB where practical
+EOF
 echo "APK_READY=$APK_TARGET"

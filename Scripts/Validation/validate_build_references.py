@@ -89,11 +89,12 @@ required_config_tokens = [
     "bBuildForX86=False",
     "bBuildForX8664=False",
     "Orientation=Landscape",
-    "GlobalDefaultGameMode=/Script/AshLineCharacters.ALPrologueGameMode",
 ]
 for token in required_config_tokens:
     if token not in engine_ini:
         errors.append(f"Missing mandatory engine config: {token}")
+if not ("GlobalDefaultGameMode=/Script/AshLineMissions.ALCombatPrototypeGameMode" in engine_ini or "GlobalDefaultGameMode=/Script/AshLineCharacters.ALPrologueGameMode" in engine_ini):
+    errors.append("Missing a valid ASH LINE GameMode config")
 
 map_matches = re.findall(r"^(?:GameDefaultMap|EditorStartupMap)=(.+)$", engine_ini, flags=re.MULTILINE)
 for map_path in map_matches:
@@ -138,8 +139,14 @@ required_scripts = [
     "Scripts/Build/ValidateBeforeBuild.ps1",
     "Scripts/Build/BuildAndroidDevelopment.ps1",
     "Scripts/Build/BuildAndroidShipping.ps1",
+    "Scripts/Build/BuildAndroidPrototype.ps1",
+    "Scripts/Build/BuildAndroidPrototype.sh",
     "Scripts/Editor/CreatePrototypeAssets.py",
     "Scripts/Validation/verify_android_release.py",
+    "Releases/Android/0.0.1/Reports/ReleaseReport.md",
+    "Releases/Android/0.0.1/Reports/SizeReport.md",
+    "Releases/Android/0.0.1/Reports/TestReport.md",
+    "Releases/Android/0.0.1/Checksums/SHA256.txt",
 ]
 for required_script in required_scripts:
     if not (ROOT / required_script).exists():

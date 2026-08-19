@@ -39,7 +39,7 @@ for token in ['UALInteractable', 'IALInteractable', 'CanInteract', 'Interact', '
     if token not in interactable_h: errors.append(f'interactable interface missing {token}')
 for token in ['SetMovementEnabled', 'SetLookEnabled', 'SetInteractionEnabled', 'SetInputLocked']:
     if token not in state_h: errors.append(f'player state API missing {token}')
-if '/Script/AshLineCharacters.ALPrologueGameMode' not in engine_ini: errors.append('Prologue GameMode not wired')
+if not ('/Script/AshLineMissions.ALCombatPrototypeGameMode' in engine_ini or '/Script/AshLineCharacters.ALPrologueGameMode' in engine_ini): errors.append('Prologue/Combat Prototype GameMode not wired')
 
 if manifest_path.exists():
     manifest = json.loads(manifest_path.read_text())
