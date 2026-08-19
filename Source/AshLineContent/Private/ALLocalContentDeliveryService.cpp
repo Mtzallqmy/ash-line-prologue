@@ -13,8 +13,18 @@ bool UALLocalContentDeliveryService::RequestPackage_Implementation(const FString
 }
 bool UALLocalContentDeliveryService::ImportPackage_Implementation(const FString& FileReference)
 {
-    if (!FPaths::DirectoryExists(FileReference)) return false;
+    return ImportDevelopmentPackageDirectory(FileReference);
+}
+
+bool UALLocalContentDeliveryService::ImportDevelopmentPackageDirectory(const FString& DirectoryReference)
+{
+    if (!FPaths::DirectoryExists(DirectoryReference)) return false;
     return true;
+}
+
+bool UALLocalContentDeliveryService::ImportPackageFile(const FString& FileReference)
+{
+    return false;
 }
 bool UALLocalContentDeliveryService::PauseDownload_Implementation(const FString& PackageId) { return PackageStates.Contains(PackageId) && PackageStates[PackageId] == EALPackageState::Downloading; }
 bool UALLocalContentDeliveryService::ResumeDownload_Implementation(const FString& PackageId) { return PackageStates.Contains(PackageId); }

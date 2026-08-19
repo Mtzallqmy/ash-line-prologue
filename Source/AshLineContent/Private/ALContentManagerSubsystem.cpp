@@ -38,6 +38,11 @@ void UALContentManagerSubsystem::Deinitialize()
 bool UALContentManagerSubsystem::InitializeContentSystem()
 {
     if (bInitialized) return true;
+#if UE_BUILD_SHIPPING
+    bAllowUnsignedDevelopmentPackages = false;
+#else
+    bAllowUnsignedDevelopmentPackages = true;
+#endif
     ContentRoot = FPaths::Combine(FPaths::ProjectPersistentDownloadDir(), TEXT("AshLine"));
     InstalledRoot = FPaths::Combine(ContentRoot, TEXT("Content/Installed"));
     DownloadsRoot = FPaths::Combine(ContentRoot, TEXT("Content/Downloads"));
@@ -169,6 +174,10 @@ bool UALContentManagerSubsystem::ImportPackageFile(const FString& FileReference)
 
 bool UALContentManagerSubsystem::ImportDevelopmentPackageDirectory(const FString& DirectoryReference)
 {
+#if UE_BUILD_SHIPPING
+    OnPackageError.Broadcast(DirectoryReference, EALContentError::InvalidSignature, TEXT("External unsigned directory packages are disabled in Shipping until cryptographic verification is implemented."));
+    return false;
+#endif
     if (!Validator || DirectoryReference.IsEmpty() || !FPaths::DirectoryExists(DirectoryReference))
     {
         OnPackageError.Broadcast(DirectoryReference, EALContentError::FileNotFound, TEXT("Development directory import expects a package directory with manifest.json."));
