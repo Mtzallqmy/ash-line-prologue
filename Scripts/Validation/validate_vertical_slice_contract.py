@@ -17,8 +17,24 @@ required = {
     "Source/AshLineMissions/Private/ALCombatPrototypeGameMode.cpp": [
         "StartMission", "ActivateObjective", "SetActiveObjectiveProgress", "CompleteActiveObjective",
     ],
+    "Source/AshLineUI/Public/ALCombatPrototypeHUD.h": [
+        "SetMissionDisplay", "SetObjectiveDisplay", "SetObjectiveProgressDisplay", "SetMissionCompleteDisplay",
+    ],
+    "Source/AshLineUI/Private/ALCombatPrototypeHUD.cpp": [
+        "OnMissionStarted", "OnObjectiveActivated", "OnObjectiveProgressChanged", "HandleMissionCompleted",
+    ],
+    "Source/AshLineCore/Public/ALSaveGameSubsystem.h": [
+        "LoadOrCreateSave", "RecordMissionProgress", "GetMissionProgress", "ASH_LINE_Profile",
+    ],
+    "Source/AshLineCore/Private/ALSaveGameSubsystem.cpp": [
+        "DoesSaveGameExist", "SaveGameToSlot",
+    ],
+    "Source/AshLineMissions/Private/ALMissionSubsystem.cpp": [
+        "PersistActiveMissionProgress", "RecordMissionProgress", "SaveCurrent",
+    ],
     "Docs/Production/MobileTouchWidgetContract.md": ["WBP_MobileTouchLayer", "SubmitMobileMove"],
     "Docs/Production/ASH_LINE_3D_Production_Plan.md": ["Vertical Slice", "30 FPS"],
+    "Docs/Build/WindowsUnrealAndroidBringup.md": ["Unreal Engine 5.4.4", "BuildFirstAPK.ps1", "30 FPS"],
 }
 
 errors = []

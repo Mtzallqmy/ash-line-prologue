@@ -18,6 +18,10 @@ public:
     UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetHealthDisplay(float CurrentHealth, float MaxHealth, float Delta);
     UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetAmmoDisplay(int32 MagazineAmmo, int32 ReserveAmmo);
     UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetEnemyCountDisplay(int32 DefeatedCount, int32 RemainingCount);
+    UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetMissionDisplay(FName MissionId);
+    UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetObjectiveDisplay(int32 ObjectiveIndex);
+    UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetObjectiveProgressDisplay(float Progress);
+    UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetMissionCompleteDisplay(FName MissionId);
     UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetPrototypeCompleteDisplay();
     UFUNCTION(BlueprintImplementableEvent, Category="ASH LINE|UI") void SetBuildLabelDisplay(const FText& Label);
 
@@ -27,5 +31,9 @@ protected:
     UFUNCTION() void HandleHealthChanged(float OldHealth, float NewHealth, float MaxHealth, float Delta);
     UFUNCTION() void HandleAmmoChanged(int32 MagazineAmmo, int32 ReserveAmmo);
     UFUNCTION() void HandleEnemyCountChanged(int32 DefeatedCount, int32 RemainingCount);
+    UFUNCTION() void HandleMissionStarted(FName MissionId);
+    UFUNCTION() void HandleMissionCompleted(FName MissionId);
+    UFUNCTION() void HandleObjectiveActivated(FName MissionId, int32 ObjectiveIndex);
+    UFUNCTION() void HandleObjectiveProgressChanged(FName MissionId, int32 ObjectiveIndex, float Progress);
     UFUNCTION() void HandlePrototypeCompleted();
 };

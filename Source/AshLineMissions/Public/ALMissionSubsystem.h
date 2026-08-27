@@ -27,4 +27,7 @@ public:
     UFUNCTION(BlueprintCallable) void CompleteActiveObjective();
     UFUNCTION(BlueprintPure) bool HasActiveMission() const { return !ActiveMissionId.IsNone(); }
     UFUNCTION(BlueprintPure) bool HasActiveObjective() const { return HasActiveMission() && ActiveObjectiveIndex != INDEX_NONE; }
+
+protected:
+    void PersistActiveMissionProgress(bool bCompleted);
 };
