@@ -1,0 +1,18 @@
+export const colors = {
+  bg: '#0b1020',
+  panel: '#111827',
+  panelSoft: '#172033',
+  text: '#f8fafc',
+  muted: '#94a3b8',
+  accent: '#f59e0b',
+  accentSoft: '#78350f',
+  danger: '#ef4444',
+  success: '#22c55e',
+  info: '#38bdf8',
+  cover: '#334155',
+  player: '#f8fafc',
+  enemy: '#ef4444',
+  bullet: '#fde68a',
+  enemyBullet: '#fb7185',
+  extraction: '#22c55e',
+};

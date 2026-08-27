@@ -1,0 +1,77 @@
+name: Expo Android Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: npm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Expo Doctor
+        run: npx expo-doctor
+
+      - name: Queue and wait for EAS build
+        env:
+          EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
+        run: |
+          eas build --platform android --profile "${{ inputs.profile }}" --non-interactive --wait --json > eas-build.json
+          cat eas-build.json
+
+      - name: Download APK for preview
+        if: ${{ inputs.profile == 'preview' }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const data = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
+          const build = Array.isArray(data) ? data[0] : data;
+          const url = build?.artifacts?.buildUrl || build?.artifacts?.applicationArchiveUrl;
+          if (!url) throw new Error('EAS did not return an APK artifact URL');
+          fs.writeFileSync('artifact-url.txt', url);
+          NODE
+          curl -L "$(cat artifact-url.txt)" -o AshLine_Prologue_preview_arm64.apk
+
+      - name: Upload APK
+        if: ${{ inputs.profile == 'preview' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-line-preview-apk
+          path: AshLine_Prologue_preview_arm64.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload EAS metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-build-metadata-${{ inputs.profile }}
+          path: eas-build.json
+          retention-days: 14
