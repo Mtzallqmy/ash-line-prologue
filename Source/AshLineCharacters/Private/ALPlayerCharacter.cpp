@@ -84,8 +84,13 @@ bool AALPlayerCharacter::HasMovementSettings() const
 
 void AALPlayerCharacter::Move(const FInputActionValue& Value)
 {
+    MoveFromTouch(Value.Get<FVector2D>());
+}
+
+void AALPlayerCharacter::MoveFromTouch(FVector2D Input)
+{
     if (!PlayerStateComponent || !PlayerStateComponent->CanMove()) return;
-    const FVector2D Input = Value.Get<FVector2D>().GetClampedToMaxSize(1.0f);
+    Input = Input.GetClampedToMaxSize(1.0f);
     if (Input.IsNearlyZero()) return;
 
     const FRotator ControlRotation = Controller ? Controller->GetControlRotation() : GetActorRotation();
@@ -98,8 +103,12 @@ void AALPlayerCharacter::Move(const FInputActionValue& Value)
 
 void AALPlayerCharacter::Look(const FInputActionValue& Value)
 {
+    LookFromTouch(Value.Get<FVector2D>());
+}
+
+void AALPlayerCharacter::LookFromTouch(FVector2D Input)
+{
     if (!PlayerStateComponent || !PlayerStateComponent->CanLook()) return;
-    const FVector2D Input = Value.Get<FVector2D>();
     const FALPlayerInputSettings InputSettings = MovementSettings ? MovementSettings->Input : FALPlayerInputSettings();
     const float YawDelta = Input.X * InputSettings.HorizontalSensitivity;
     const float PitchSign = InputSettings.bInvertY ? 1.0f : -1.0f;

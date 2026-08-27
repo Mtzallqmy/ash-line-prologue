@@ -100,3 +100,65 @@ void AALPlayerController::SetMobileTouchEnabled(bool bEnabled)
         MobileTouchWidget = nullptr;
     }
 }
+
+void AALPlayerController::SubmitMobileMove(FVector2D Input)
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->MoveFromTouch(Input);
+}
+
+void AALPlayerController::SubmitMobileLook(FVector2D Input)
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->LookFromTouch(Input);
+}
+
+void AALPlayerController::SetMobileFireHeld(bool bHeld)
+{
+    if (AALPlayerCharacter* Player = GetALPlayer())
+    {
+        if (bHeld) Player->StartFire();
+        else Player->StopFire();
+    }
+}
+
+void AALPlayerController::SetMobileAimHeld(bool bHeld)
+{
+    if (AALPlayerCharacter* Player = GetALPlayer())
+    {
+        if (bHeld) Player->StartAim();
+        else Player->StopAim();
+    }
+}
+
+void AALPlayerController::SetMobileSprintHeld(bool bHeld)
+{
+    if (AALPlayerCharacter* Player = GetALPlayer())
+    {
+        if (bHeld) Player->StartSprint();
+        else Player->StopSprint();
+    }
+}
+
+void AALPlayerController::TriggerMobileReload()
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->ReloadWeapon();
+}
+
+void AALPlayerController::TriggerMobileSwitchWeapon()
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->SwitchWeapon();
+}
+
+void AALPlayerController::TriggerMobileInteract()
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->Interact();
+}
+
+void AALPlayerController::TriggerMobileCrouch()
+{
+    if (AALPlayerCharacter* Player = GetALPlayer()) Player->ToggleCrouch();
+}
+
+void AALPlayerController::TriggerMobilePause()
+{
+    if (GetWorld()) UGameplayStatics::SetGamePaused(GetWorld(), !UGameplayStatics::IsGamePaused(GetWorld()));
+}

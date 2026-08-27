@@ -36,6 +36,16 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void ApplyPlayerMappingContext();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void SetMobileTouchEnabled(bool bEnabled);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void SubmitMobileMove(FVector2D Input);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void SubmitMobileLook(FVector2D Input);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void SetMobileFireHeld(bool bHeld);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void SetMobileAimHeld(bool bHeld);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void SetMobileSprintHeld(bool bHeld);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void TriggerMobileReload();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void TriggerMobileSwitchWeapon();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void TriggerMobileInteract();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void TriggerMobileCrouch();
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void TriggerMobilePause();
 
 protected:
     void HandleMove(const FInputActionValue& Value);

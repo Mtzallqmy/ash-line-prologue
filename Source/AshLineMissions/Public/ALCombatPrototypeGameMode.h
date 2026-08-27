@@ -22,6 +22,8 @@ public:
     UFUNCTION(BlueprintPure, Category="ASH LINE|Prototype") bool IsPrototypeComplete() const { return bPrototypeComplete; }
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="ASH LINE|Prototype") int32 RequiredEnemyCount = 6;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="ASH LINE|Mission") FName PrototypeMissionId = FName(TEXT("mission_02_first_contact"));
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="ASH LINE|Mission") int32 CombatObjectiveIndex = 1;
     UPROPERTY(BlueprintReadOnly, Category="ASH LINE|Prototype") int32 DefeatedEnemyCount = 0;
     UPROPERTY(BlueprintReadOnly, Category="ASH LINE|Prototype") bool bPrototypeComplete = false;
 

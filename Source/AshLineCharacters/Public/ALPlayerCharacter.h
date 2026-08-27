@@ -30,6 +30,8 @@ public:
 
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void MoveFromTouch(FVector2D Input);
+    UFUNCTION(BlueprintCallable, Category="ASH LINE|Mobile Input") void LookFromTouch(FVector2D Input);
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void StartJump();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void StopJump();
     UFUNCTION(BlueprintCallable, Category="ASH LINE|Input") void StartSprint();

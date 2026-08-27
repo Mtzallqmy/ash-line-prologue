@@ -1,6 +1,8 @@
 #include "ALCombatPrototypeGameMode.h"
 
 #include "ALInfantryCharacter.h"
+#include "ALMissionSubsystem.h"
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
 AALCombatPrototypeGameMode::AALCombatPrototypeGameMode()
@@ -18,6 +20,12 @@ void AALCombatPrototypeGameMode::BeginPlay()
 
     if (RequiredEnemyCount <= 0) RequiredEnemyCount = RegisteredEnemies.Num();
     OnEnemyCountChanged.Broadcast(DefeatedEnemyCount, GetRemainingEnemyCount());
+    if (UALMissionSubsystem* MissionSubsystem = GetWorld() ? GetWorld()->GetSubsystem<UALMissionSubsystem>() : nullptr)
+    {
+        MissionSubsystem->StartMission(PrototypeMissionId);
+        MissionSubsystem->ActivateObjective(CombatObjectiveIndex);
+        MissionSubsystem->SetActiveObjectiveProgress(RequiredEnemyCount > 0 ? 0.0f : 1.0f);
+    }
 }
 
 void AALCombatPrototypeGameMode::RegisterEnemy(AALInfantryCharacter* Enemy)
@@ -39,6 +47,11 @@ void AALCombatPrototypeGameMode::HandleEnemyKilled(AActor* EnemyActor)
     DefeatedEnemies.Add(Enemy);
     ++DefeatedEnemyCount;
     OnEnemyCountChanged.Broadcast(DefeatedEnemyCount, GetRemainingEnemyCount());
+    if (UALMissionSubsystem* MissionSubsystem = GetWorld() ? GetWorld()->GetSubsystem<UALMissionSubsystem>() : nullptr)
+    {
+        const float Progress = RequiredEnemyCount > 0 ? static_cast<float>(DefeatedEnemyCount) / static_cast<float>(RequiredEnemyCount) : 1.0f;
+        MissionSubsystem->SetActiveObjectiveProgress(Progress);
+    }
     if (DefeatedEnemyCount >= RequiredEnemyCount) CompletePrototype();
 }
 
@@ -46,5 +59,10 @@ void AALCombatPrototypeGameMode::CompletePrototype()
 {
     if (bPrototypeComplete) return;
     bPrototypeComplete = true;
+    if (UALMissionSubsystem* MissionSubsystem = GetWorld() ? GetWorld()->GetSubsystem<UALMissionSubsystem>() : nullptr)
+    {
+        MissionSubsystem->CompleteActiveObjective();
+        MissionSubsystem->CompleteMission(PrototypeMissionId);
+    }
     OnPrototypeCompleted.Broadcast();
 }
