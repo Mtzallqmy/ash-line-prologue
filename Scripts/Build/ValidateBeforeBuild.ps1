@@ -20,8 +20,12 @@ foreach ($validator in $validators) {
     if ($LASTEXITCODE -ne 0) { throw "Validation failed: $validator" }
 }
 
-git -C $ProjectRoot diff --check
-if ($LASTEXITCODE -ne 0) { throw "git diff --check failed" }
+if (Test-Path -LiteralPath (Join-Path $ProjectRoot '.git') -PathType Container) {
+    git -C $ProjectRoot diff --check
+    if ($LASTEXITCODE -ne 0) { throw "git diff --check failed" }
+} else {
+    Write-Warning "No .git directory found; skipping git diff --check (ZIP/source archive build mode)."
+}
 
 if ($RequireUnreal) {
     if ([string]::IsNullOrWhiteSpace($env:UE_ROOT)) { throw "UNREAL BUILD ENVIRONMENT NOT AVAILABLE: set UE_ROOT." }
