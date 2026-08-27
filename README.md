@@ -268,3 +268,15 @@ Scripts/Build/ValidateBeforeBuild.sh
 يحتاج الـRunner إلى Labels: `self-hosted`, `Windows`, `X64`, `unreal-5.4`, `android`. كما يحتاج Variables: `UE_ROOT`, `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`. أسرار Shipping هي `ANDROID_KEY_ALIAS`, `ANDROID_KEYSTORE_PASSWORD`, و`ANDROID_KEY_PASSWORD`، بينما يُحفظ Keystore خارج المستودع في `$RUNNER_TEMP\ashline-release.keystore`.
 
 التفاصيل الكاملة في [GitHubActionsSelfHostedRunner.md](Docs/Build/GitHubActionsSelfHostedRunner.md).
+
+## One-command Android APK build
+
+For the first Android ARM64 test build on a Windows machine/self-hosted runner that contains Unreal Engine 5.4.4+, use:
+
+```text
+BUILD_APK.cmd
+```
+
+The command auto-detects/validates UE 5.4.4, Android SDK API 34, NDK r25b and JDK 17, compiles the Editor target, generates the Combat Prototype Unreal assets, runs `BuildCookRun` with the required `-package` flag, verifies the APK metadata, and writes the result under `Releases/Android/0.0.1/APK/`.
+
+See `Docs/Build/APKBuildSolution.md` for GitHub Actions and Shipping instructions.

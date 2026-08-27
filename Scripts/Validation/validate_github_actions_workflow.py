@@ -19,17 +19,12 @@ required_strings = [
     "X64",
     "unreal-5.4",
     "android",
+    "BuildFirstAPK.ps1",
     "UE_ROOT",
     "ANDROID_HOME",
     "ANDROID_NDK_HOME",
     "JAVA_HOME",
-    "UnrealBuildTool.exe",
-    "RunUAT.bat",
-    "UnrealEditor-Cmd.exe",
-    "ValidateBeforeBuild.ps1",
-    "CreatePrototypeAssets.py",
-    "L_CombatPrototype.umap",
-    "BuildAndroidPrototype.ps1",
+    "ANDROID_KEYSTORE_B64",
     "ash-line-android-apk",
     "ash-line-android-reports",
     "timeout-minutes",
@@ -54,5 +49,11 @@ if not workflow_dispatch:
 options = workflow_dispatch.get("inputs", {}).get("configuration", {}).get("options", [])
 if set(options) != {"Development", "Shipping"}:
     raise SystemExit(f"Configuration options mismatch: {options}")
+
+build_script = (root / 'Scripts/Build/BuildAndroidPrototype.ps1').read_text(encoding='utf-8')
+if "'-package'" not in build_script and '-package' not in build_script:
+    raise SystemExit('BuildAndroidPrototype.ps1 must pass -package to BuildCookRun')
+if 'ResolveBuildEnvironment.ps1' not in (root / 'Scripts/Build/BuildFirstAPK.ps1').read_text(encoding='utf-8'):
+    raise SystemExit('BuildFirstAPK.ps1 must resolve the Unreal/Android environment')
 
 print("GitHub Actions workflow validation: PASS")

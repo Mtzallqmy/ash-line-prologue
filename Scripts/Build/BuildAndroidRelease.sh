@@ -67,7 +67,7 @@ TOOLCHAIN_REPORT="$RELEASE_ROOT/Reports/toolchain_$CONFIGURATION.txt"
   echo "Renderer=OpenGL ES compatibility path; Vulkan optional"
 } > "$TOOLCHAIN_REPORT"
 
-UAT_ARGS=(BuildCookRun "-project=$PROJECT_FILE" -nop4 -utf8output -platform=Android "-clientconfig=$CONFIGURATION" -build -cook -stage -pak -archive "-archivedirectory=$ARCHIVE_ROOT" -prereqs)
+UAT_ARGS=(BuildCookRun "-project=$PROJECT_FILE" -nop4 -utf8output -platform=Android "-clientconfig=$CONFIGURATION" -build -cook -stage -package -pak -archive "-archivedirectory=$ARCHIVE_ROOT" -prereqs)
 if [[ "$CONFIGURATION" == "Shipping" ]]; then UAT_ARGS+=( -distribution ); fi
 "$UAT" "${UAT_ARGS[@]}"
 
