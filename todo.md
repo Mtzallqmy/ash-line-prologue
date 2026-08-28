@@ -18,4 +18,4 @@
 - [x] Skip physical Android device testing per the user's instruction.
 - [x] Review Godot runtime scenes, data files, export settings, and one-command build scripts for missing launch-critical files.
 - [x] Add pre-export launch-critical file checks and remove the unnecessary adb prerequisite from the Godot build script.
-- [ ] Push the final runtime-file updates and update the published GitHub Release assets and notes.
+- [x] Push the final runtime-file updates and update the published GitHub Release assets and notes.
