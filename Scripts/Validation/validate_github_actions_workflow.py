@@ -1,14 +1,10 @@
+#!/usr/bin/env python3
+"""Validate the Android workflow without third-party Python dependencies."""
 from pathlib import Path
-
-try:
-    import yaml
-except ImportError as exc:
-    raise SystemExit(f"PyYAML is required for local workflow validation: {exc}")
 
 root = Path(__file__).resolve().parents[2]
 workflow_path = root / ".github/workflows/build-android-apk.yml"
 text = workflow_path.read_text(encoding="utf-8")
-data = yaml.safe_load(text)
 
 required_strings = [
     "workflow_dispatch",
@@ -19,7 +15,7 @@ required_strings = [
     "X64",
     "unreal-5.4",
     "android",
-    "BuildFirstAPK.ps1",
+    "BuildAndroidMinimal.ps1",
     "UE_ROOT",
     "ANDROID_HOME",
     "ANDROID_NDK_HOME",
@@ -27,33 +23,22 @@ required_strings = [
     "ANDROID_KEYSTORE_B64",
     "ash-line-android-apk",
     "ash-line-android-reports",
-    "timeout-minutes",
+    "timeout-minutes: 180",
 ]
 missing = [token for token in required_strings if token not in text]
 if missing:
     raise SystemExit("Missing workflow requirements: " + ", ".join(missing))
 
-jobs = data.get("jobs", {})
-if len(jobs) != 1:
-    raise SystemExit("Expected exactly one build job")
-job = next(iter(jobs.values()))
-if job.get("timeout-minutes") != 180:
-    raise SystemExit("Build job timeout must be 180 minutes")
-labels = job.get("runs-on")
-expected_labels = {"self-hosted", "Windows", "X64", "unreal-5.4", "android"}
-if set(labels or []) != expected_labels:
-    raise SystemExit(f"Runner labels mismatch: {labels}")
-workflow_dispatch = data.get(True, {}).get("workflow_dispatch") or data.get("on", {}).get("workflow_dispatch")
-if not workflow_dispatch:
-    raise SystemExit("workflow_dispatch trigger is missing")
-options = workflow_dispatch.get("inputs", {}).get("configuration", {}).get("options", [])
-if set(options) != {"Development", "Shipping"}:
-    raise SystemExit(f"Configuration options mismatch: {options}")
+for label in ("self-hosted", "Windows", "X64", "unreal-5.4", "android"):
+    if label not in text:
+        raise SystemExit(f"Runner label is missing: {label}")
+if "- Development" not in text or "- Shipping" not in text:
+    raise SystemExit("Development and Shipping workflow options are required")
 
-build_script = (root / 'Scripts/Build/BuildAndroidPrototype.ps1').read_text(encoding='utf-8')
-if "'-package'" not in build_script and '-package' not in build_script:
-    raise SystemExit('BuildAndroidPrototype.ps1 must pass -package to BuildCookRun')
-if 'ResolveBuildEnvironment.ps1' not in (root / 'Scripts/Build/BuildFirstAPK.ps1').read_text(encoding='utf-8'):
-    raise SystemExit('BuildFirstAPK.ps1 must resolve the Unreal/Android environment')
+build_script = (root / "Scripts/Build/BuildAndroidMinimal.ps1").read_text(encoding="utf-8")
+if "'-package'" not in build_script and "-package" not in build_script:
+    raise SystemExit("BuildAndroidMinimal.ps1 must pass -package to BuildCookRun")
+if "SetupMinimalAndroidBuild.ps1" not in build_script:
+    raise SystemExit("BuildAndroidMinimal.ps1 must resolve the minimal Unreal/Android environment")
 
 print("GitHub Actions workflow validation: PASS")

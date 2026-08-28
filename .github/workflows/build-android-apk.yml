@@ -56,7 +56,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           $ErrorActionPreference = 'Stop'
-          & "$env:GITHUB_WORKSPACE\Scripts\Build\BuildFirstAPK.ps1" `
+          & "$env:GITHUB_WORKSPACE\Scripts\Build\BuildAndroidMinimal.ps1" `
             -ProjectRoot $env:GITHUB_WORKSPACE `
             -Configuration '${{ inputs.configuration }}' `
             -PreferredUnrealRoot $env:UE_ROOT_HINT `

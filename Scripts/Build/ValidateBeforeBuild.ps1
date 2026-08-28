@@ -5,6 +5,18 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$pythonExe = $env:PYTHON_EXE
+if ([string]::IsNullOrWhiteSpace($pythonExe) -and -not [string]::IsNullOrWhiteSpace($env:UE_ROOT)) {
+    $embeddedPython = Join-Path $env:UE_ROOT 'Engine\Binaries\ThirdParty\Python3\Win64\python.exe'
+    if (Test-Path -LiteralPath $embeddedPython -PathType Leaf) { $pythonExe = $embeddedPython }
+}
+if ([string]::IsNullOrWhiteSpace($pythonExe)) {
+    $pythonCommand = Get-Command python.exe -ErrorAction SilentlyContinue
+    if ($pythonCommand) { $pythonExe = $pythonCommand.Source }
+}
+if ([string]::IsNullOrWhiteSpace($pythonExe) -or -not (Test-Path -LiteralPath $pythonExe -PathType Leaf)) {
+    throw 'Python is required for repository validators. Unreal embedded Python is sufficient after Unreal is installed.'
+}
 $validators = @(
     "validate_project.py",
     "validate_content_system.py",
@@ -16,7 +28,7 @@ $validators = @(
     "static_surface_check.py"
 )
 foreach ($validator in $validators) {
-    & python (Join-Path $ProjectRoot "Scripts/Validation/$validator") $ProjectRoot
+    & $pythonExe (Join-Path $ProjectRoot "Scripts/Validation/$validator") $ProjectRoot
     if ($LASTEXITCODE -ne 0) { throw "Validation failed: $validator" }
 }
 

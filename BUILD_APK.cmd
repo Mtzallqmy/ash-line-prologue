@@ -2,7 +2,7 @@
 setlocal
 cd /d "%~dp0"
 echo [ASH LINE] Building Development Android ARM64 APK...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Scripts\Build\BuildFirstAPK.ps1" -Configuration Development
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Scripts\Build\BuildAndroidMinimal.ps1" -Configuration Development
 if errorlevel 1 (
   echo.
   echo [ASH LINE] APK build FAILED. Review the error above and Saved\Logs.

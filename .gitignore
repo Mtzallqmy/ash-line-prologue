@@ -22,3 +22,11 @@ secrets/
 credentials/
 __pycache__/
 *.pyc
+.godot/
+Godot/Releases/
+Godot/android/
+Godot/.godot/
+Godot/BuildStatus.json
+Tools/Android/*.zip
+Tools/Android/parts*/
+Tools/Android/*.log
