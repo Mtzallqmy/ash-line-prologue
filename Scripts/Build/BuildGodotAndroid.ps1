@@ -39,9 +39,21 @@ try {
     Set-BuildStatus -Phase 'validating' -Percent 5 -Message 'Checking Godot and Android build prerequisites.'
     if (-not (Test-Path -LiteralPath $godot -PathType Leaf)) { throw "Godot executable not found: $godot" }
     if (-not (Test-Path -LiteralPath $aapt -PathType Leaf)) { throw "Android aapt.exe not found under: $buildToolsRoot" }
-    if (-not (Test-Path -LiteralPath (Join-Path $sdkRoot 'platform-tools\adb.exe') -PathType Leaf)) { throw 'Android platform-tools (adb.exe) not found.' }
+    $requiredFiles = @(
+        (Join-Path $projectRoot 'project.godot'),
+        (Join-Path $projectRoot 'export_presets.cfg'),
+        (Join-Path $projectRoot 'scenes\MainMenu.tscn'),
+        (Join-Path $projectRoot 'scenes\CombatArena.tscn'),
+        (Join-Path $projectRoot 'scenes\Player.tscn'),
+        (Join-Path $projectRoot 'scenes\Enemy.tscn'),
+        (Join-Path $projectRoot 'scripts\core\GameSession.gd'),
+        (Join-Path $projectRoot 'scripts\platform\CombatArena.gd'),
+        (Join-Path $projectRoot 'tests\vertical_slice_smoke.gd')
+    )
+    $missingFiles = $requiredFiles | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) }
+    if ($missingFiles) { throw "Godot launch-critical files are missing: $($missingFiles -join '; ')" }
 
-    Set-BuildStatus -Phase 'smoke-test' -Percent 18 -Message 'Running the Godot vertical-slice smoke test.'
+    Set-BuildStatus -Phase 'smoke-test' -Percent 18 -Message 'Running the Godot vertical-slice smoke test (no phone or adb required).'
     & $godot --headless --language en --audio-driver Dummy --path $projectRoot --script 'res://tests/vertical_slice_smoke.gd'
     if ($LASTEXITCODE -ne 0) { throw 'Godot vertical-slice smoke test failed.' }
 

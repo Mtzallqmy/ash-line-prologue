@@ -4,14 +4,18 @@
 - [x] Create migration documentation mapping Unreal gameplay systems and unavailable assets to Godot replacements.
 - [x] Scaffold a modular Godot 4 GDScript project without modifying or depending on the Unreal runtime.
 - [x] Implement the mobile-first 3D vertical slice: menu, player, touch input, camera, enemy AI, weapon, health, win/lose, and HUD.
-- [ ] Adapt the minimum Android toolchain and one-command build flow for Godot without Unreal, Android Studio, or Visual Studio.
+- [x] Adapt the minimum Android toolchain and one-command build flow for Godot without Unreal, Android Studio, or Visual Studio.
 - [ ] Export, inspect, and test an ARM64 Android APK for Android 8 and later.
 - [ ] Add Godot-oriented CI, migration status, and commit the migration source without generated binaries or credentials.
 - [x] Add a build-progress status file reporting current download percentage, completed bytes, remaining bytes, and the active toolchain phase.
-- [ ] Add the minimal Godot Gradle build template required to enforce Android minSdk 26, then rebuild and revalidate the APK.
-- [ ] Commit and push the Godot migration source and build documentation to the dedicated GitHub branch.
-- [ ] Create the first GitHub release with the verified Android APK and its SHA-256 checksum attachment.
-- [ ] Extend the temporary dashboard to show the overall remaining release workflow and a percentage for each active or pending operation.
-- [ ] Publish the first GitHub release before attempting the optional physical Android device install test.
-- [ ] Provide post-release installation, launch, and one-command build instructions in Arabic.
-- [ ] Attach the verified Development APK to this conversation, clearly marked as a pre-release build.
+- [x] Add the minimal Godot Gradle build template required to enforce Android minSdk 26, then rebuild and revalidate the APK.
+- [x] Commit and push the Godot migration source and build documentation to the dedicated GitHub branch.
+- [x] Create the first GitHub release with the verified Android APK and its SHA-256 checksum attachment.
+- [x] Extend the temporary dashboard to show the overall remaining release workflow and a percentage for each active or pending operation.
+- [x] Publish the first GitHub release before attempting the optional physical Android device install test.
+- [x] Provide post-release installation, launch, and one-command build instructions in Arabic.
+- [x] Attach the verified Development APK to this conversation, clearly marked as a pre-release build.
+- [x] Skip physical Android device testing per the user's instruction.
+- [x] Review Godot runtime scenes, data files, export settings, and one-command build scripts for missing launch-critical files.
+- [x] Add pre-export launch-critical file checks and remove the unnecessary adb prerequisite from the Godot build script.
+- [ ] Push the final runtime-file updates and update the published GitHub Release assets and notes.

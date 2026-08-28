@@ -38,3 +38,14 @@
 [3] [مصدر مدير قوالب التصدير في Godot — قائمة قوالب Android](https://github.com/godotengine/godot/blob/4.7/editor/export/export_template_manager.cpp)
 
 [4] [تصدير Godot إلى Android](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html)
+
+## فحص ملفات الإطلاق والبناء دون هاتف
+
+ينفذ سكربت `Scripts/Build/BuildGodotAndroid.ps1` اختبار Godot الصامت، ثم يتحقق من وجود جميع الملفات الحرجة قبل التصدير، ويصدر APK بنية `arm64-v8a`، ويفحص اسم الحزمة والحد الأدنى للنظام والتوقيع. لا يحتاج مسار البناء إلى هاتف متصل أو إلى `adb`؛ اختبار التثبيت الفعلي على جهاز Android خطوة اختيارية منفصلة.
+
+| المجال | الملفات التي يجب أن تكون موجودة |
+|---|---|
+| إعداد المشروع | `Godot/project.godot` و`Godot/export_presets.cfg` |
+| المشاهد | `MainMenu.tscn` و`CombatArena.tscn` و`Player.tscn` و`Enemy.tscn` |
+| منطق التشغيل | `GameSession.gd` و`CombatArena.gd` |
+| التحقق الآلي | `Godot/tests/vertical_slice_smoke.gd` |
